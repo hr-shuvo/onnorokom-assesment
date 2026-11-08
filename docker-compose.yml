@@ -4,7 +4,7 @@ name: onnorokom-assesment
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:17
     environment:
       POSTGRES_USER: onnorokom
       POSTGRES_PASSWORD: onnorokom
@@ -37,7 +37,7 @@ services:
       args:
         - VITE_API_URL=http://localhost:8080
     ports:
-      - "3000:3000"
+      - "3000:80"
 
 
 volumes:
