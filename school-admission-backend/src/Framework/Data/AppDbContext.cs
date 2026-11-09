@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Framework.Persistence;
+namespace Framework.Data;
 
 public class AppDbContext : DbContext
 {

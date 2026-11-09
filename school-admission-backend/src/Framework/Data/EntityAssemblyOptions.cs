@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Framework.Persistence;
+namespace Framework.Data;
 
 public class EntityAssemblyOptions
 {

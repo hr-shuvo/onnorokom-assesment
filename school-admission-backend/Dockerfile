@@ -1,7 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
+
 COPY src/Api/*.csproj src/Api/
 COPY src/Framework/*.csproj src/Framework/
+COPY src/Domain/*.csproj src/Domain/
+
 RUN dotnet restore src/Api
 COPY . .
 RUN dotnet publish src/Api -c Release -o /app --no-restore
