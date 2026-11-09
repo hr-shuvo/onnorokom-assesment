@@ -1,10 +1,11 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { SHIFTS } from "../../types/academic-class";
+import { enumService, type EnumOption } from "../../api/enums";
 import { academicClassSchema, type AcademicClassFormValues } from "./academic-class-schema";
 
 const emptyValues: AcademicClassFormValues = {
@@ -42,6 +43,16 @@ export function AcademicClassForm({
   const shift = watch("shift");
   const isActive = watch("isActive");
 
+  const [shifts, setShifts] = useState<EnumOption[]>([]);
+
+  useEffect(() => {
+    async function loadShifts() {
+      const result = await enumService.loadShifts();
+      setShifts(result);
+    }
+    loadShifts();
+  }, []);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-md space-y-4">
       <div className="space-y-2">
@@ -77,9 +88,9 @@ export function AcademicClassForm({
           onChange={(e) => setValue("shift", e.target.value as AcademicClassFormValues["shift"])}
           className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          {SHIFTS.map((option) => (
-            <option key={option} value={option}>
-              {option}
+          {shifts.map((option) => (
+            <option key={option.value} value={option.name}>
+              {option.name}
             </option>
           ))}
         </select>

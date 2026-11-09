@@ -112,7 +112,7 @@ export default function ClassesPage() {
         className="max-w-xs"
       />
 
-      {error && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
+      {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
 
       <DataTable
         columns={columns}

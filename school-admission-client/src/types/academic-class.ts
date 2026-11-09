@@ -1,6 +1,4 @@
-export type Shift = "Morning" | "Day" | "Evening";
-
-export const SHIFTS: Shift[] = ["Morning", "Day", "Evening"];
+export type Shift = string;
 
 export interface AcademicClass {
   id: number;
