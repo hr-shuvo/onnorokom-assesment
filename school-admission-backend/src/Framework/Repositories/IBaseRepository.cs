@@ -15,6 +15,6 @@ public interface IBaseRepository<TEntity> where TEntity : BaseEntity
     Task AddAsync(TEntity entity);
     void Update(TEntity entity);
     void Remove(TEntity entity);
-    
-    
+
+    Task SaveChangesAsync();
 }

@@ -4,11 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Framework.Repositories;
 
-public class BaseRepository<TEntity>(DbContext context) : IBaseRepository<TEntity>
+public class BaseRepository<TEntity> : IBaseRepository<TEntity>
     where TEntity : BaseEntity
 {
-    private DbContext Context { get; } = context;
-    protected DbSet<TEntity> DbSet => Context.Set<TEntity>();
+    private readonly DbContext _context;
+
+    public BaseRepository(DbContext context)
+    {
+        _context = context;
+    }
+
+    protected DbSet<TEntity> DbSet => _context.Set<TEntity>();
 
     public IQueryable<TEntity> Query(bool withTracking = false)
     {
@@ -18,8 +24,8 @@ public class BaseRepository<TEntity>(DbContext context) : IBaseRepository<TEntit
     public Task<TEntity> Get(long id, bool withTracking = false)
     {
         return withTracking
-            ? DbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id)
-            : DbSet.FirstOrDefaultAsync(e => e.Id == id);
+            ? DbSet.FirstOrDefaultAsync(e => e.Id == id)
+            : DbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
     }
 
     public Task<TEntity> Get(Expression<Func<TEntity, bool>> predicate, bool withTracking = false)
@@ -27,23 +33,30 @@ public class BaseRepository<TEntity>(DbContext context) : IBaseRepository<TEntit
         return Query(withTracking).FirstOrDefaultAsync(predicate);
     }
 
-    public Task<(int Count, IEnumerable<TEntity> Items)> ToPagedListAsync(IQueryable<TEntity> query, int page, int size)
+    public async Task<(int Count, IEnumerable<TEntity> Items)> ToPagedListAsync(IQueryable<TEntity> query, int page, int size)
     {
-        throw new NotImplementedException();
+        var count = await query.CountAsync();
+        var items = await query.Skip((page - 1) * size).Take(size).ToListAsync();
+        return (count, items);
     }
 
-    public Task AddAsync(TEntity entity)
+    public async Task AddAsync(TEntity entity)
     {
-        throw new NotImplementedException();
+        await DbSet.AddAsync(entity);
     }
 
     public void Update(TEntity entity)
     {
-        throw new NotImplementedException();
+        DbSet.Update(entity);
     }
 
     public void Remove(TEntity entity)
     {
-        throw new NotImplementedException();
+        DbSet.Remove(entity);
+    }
+
+    public Task SaveChangesAsync()
+    {
+        return _context.SaveChangesAsync();
     }
 }

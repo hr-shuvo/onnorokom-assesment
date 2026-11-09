@@ -21,4 +21,8 @@ public class Queryparams
     }
 
     public int Skip => (PageNumber - 1) * PageSize;
+
+    public string Search { get; set; }
+
+    public bool? IsActive { get; set; }
 }
