@@ -6,9 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Framework.Middleware;
 
-public class ExceptionHandlingMiddleware(
+public class ExceptionMiddleware(
     RequestDelegate next,
-    ILogger<ExceptionHandlingMiddleware> logger,IHostEnvironment env)
+    ILogger<ExceptionMiddleware> logger,IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)
     {

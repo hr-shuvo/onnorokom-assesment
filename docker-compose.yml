@@ -15,13 +15,14 @@ services:
       - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "onnorokom", "-d", "admission-db"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   api:
     build: ./school-admission-backend
     environment:
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: postgres://onnorokom:onnorokom@db:5432/admission-db
 
     ports:
