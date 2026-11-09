@@ -4,7 +4,7 @@ import type { AcademicClass, AcademicClassInput, PagedResult } from "../types/ac
 const BASE_PATH = "/api/classes";
 
 export async function listAcademicClasses() {
-  const { data } = await httpClient.get<PagedResult<AcademicClass>>(`${BASE_PATH}/load`, {
+  const { data } = await httpClient.get<PagedResult<AcademicClass>>(BASE_PATH, {
     params: { pageSize: 100 },
   });
   return data;

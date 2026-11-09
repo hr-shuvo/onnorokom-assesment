@@ -16,7 +16,7 @@ public class AcademicClassesController : BaseApiController
         _classService = classService;
     }
 
-    [HttpGet("load")]
+    [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] AcademicClassQueryParams queryParams)
     {
         var (count, items) = await _classService.LoadAsync(queryParams);
