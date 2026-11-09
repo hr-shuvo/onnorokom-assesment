@@ -28,7 +28,7 @@ export default function AdminLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-b bg-background px-6 py-4 text-lg font-semibold md:hidden">
-          Admission Admin
+          Admission Admin Test
         </header>
         <main className="flex-1 p-6">
           <Outlet />
