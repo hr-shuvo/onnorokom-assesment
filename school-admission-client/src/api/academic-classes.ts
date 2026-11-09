@@ -3,23 +3,36 @@ import type { AcademicClass, AcademicClassInput, PagedResult } from "../types/ac
 
 const BASE_PATH = "/api/classes";
 
-export async function listAcademicClasses() {
-  const { data } = await httpClient.get<PagedResult<AcademicClass>>(BASE_PATH, {
-    params: { pageSize: 100 },
-  });
-  return data;
+export interface ListAcademicClassesParams {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
 }
 
-export async function saveAcademicClass(input: AcademicClassInput & { id?: number }) {
-  const { data } = await httpClient.post<AcademicClass>(`${BASE_PATH}/save`, input);
-  return data;
-}
+export const academicClassService = {
+  async load(params: ListAcademicClassesParams = {}) {
+    const { data } = await httpClient.get<PagedResult<AcademicClass>>(BASE_PATH, {
+      params,
+    });
+    return data;
+  },
 
-export async function toggleAcademicClassStatus(id: number) {
-  const { data } = await httpClient.patch<AcademicClass>(`${BASE_PATH}/${id}/status`);
-  return data;
-}
+  async get(id: number) {
+    const { data } = await httpClient.get<AcademicClass>(`${BASE_PATH}/${id}`);
+    return data;
+  },
 
-export async function deleteAcademicClass(id: number) {
-  await httpClient.delete(`${BASE_PATH}/delete/${id}`);
-}
+  async save(input: AcademicClassInput & { id?: number }) {
+    const { data } = await httpClient.post<AcademicClass>(`${BASE_PATH}/save`, input);
+    return data;
+  },
+
+  async toggleStatus(id: number) {
+    const { data } = await httpClient.patch<AcademicClass>(`${BASE_PATH}/${id}/status`);
+    return data;
+  },
+
+  async delete(id: number) {
+    await httpClient.delete(`${BASE_PATH}/delete/${id}`);
+  },
+};
