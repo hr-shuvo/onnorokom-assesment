@@ -19,6 +19,8 @@ public class AdmissionDto
 
 public class AdmissionVm
 {
+    public long? Id { get; set; }
+
     [Required]
     [MaxLength(200)]
     public string Title { get; set; }

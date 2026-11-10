@@ -31,7 +31,7 @@ const emptyValues: AcademicClassFormValues = {
 const ClassCreatePage = () => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
-  const { data: shifts = [], isLoading: isLoadingShifts } = useShifts();
+  const { shifts, isLoading: isLoadingShifts } = useShifts();
 
   const form = useForm<AcademicClassFormValues>({
     resolver: zodResolver(academicClassSchema),

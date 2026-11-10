@@ -17,4 +17,16 @@ public class EnumsController : BaseApiController
 
         return Ok(result);
     }
+
+    [HttpGet("admission-statuses")]
+    public IActionResult GetAdmissionStatuses()
+    {
+        var result = Enum.GetValues<AdmissionStatus>().Select(value => new
+        {
+            Value = (int)value,
+            Name = value.ToString(),
+        });
+
+        return Ok(result);
+    }
 }

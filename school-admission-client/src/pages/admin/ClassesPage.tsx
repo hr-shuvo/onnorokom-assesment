@@ -28,7 +28,7 @@ const ClassesPage = () => {
   const [data, setData] = useState<PagedResult<AcademicClass> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
-  const { data: shifts = [] } = useShifts();
+  const { shifts } = useShifts();
 
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 

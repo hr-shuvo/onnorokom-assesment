@@ -29,7 +29,7 @@ const ClassEditPage = () => {
   const [academicClass, setAcademicClass] = useState<AcademicClass | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const { data: shifts = [], isLoading: isLoadingShifts } = useShifts();
+  const { shifts, isLoading: isLoadingShifts } = useShifts();
 
   const form = useForm<AcademicClassFormValues>({
     resolver: zodResolver(academicClassSchema),

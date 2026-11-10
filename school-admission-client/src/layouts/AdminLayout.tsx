@@ -1,4 +1,4 @@
-import { GraduationCap, LayoutGrid } from "lucide-react";
+import { ClipboardList, GraduationCap, LayoutGrid } from "lucide-react";
 import { NavLink, Outlet, useLocation } from "react-router";
 import {
   Sidebar,
@@ -15,7 +15,10 @@ import {
   SidebarTrigger,
 } from "../components/ui/sidebar";
 
-const navItems = [{ to: "/admin/classes", label: "Classes", icon: LayoutGrid }];
+const navItems = [
+  { to: "/admin/admissions", label: "Admissions", icon: ClipboardList },
+  { to: "/admin/classes", label: "Classes", icon: LayoutGrid },
+];
 
 export default function AdminLayout() {
   const location = useLocation();

@@ -10,4 +10,9 @@ export const enumService = {
     const { data } = await httpClient.get<EnumOption[]>("/api/enums/shifts");
     return data;
   },
+
+  async loadAdmissionStatuses() {
+    const { data } = await httpClient.get<EnumOption[]>("/api/enums/admission-statuses");
+    return data;
+  },
 };

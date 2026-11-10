@@ -41,6 +41,25 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
 
     public async Task<AdmissionDto> SaveAsync(AdmissionVm model)
     {
+        if (model.Id.HasValue)
+        {
+            var existing = await GetByIdAsync(model.Id.Value);
+
+            if (existing.Status != AdmissionStatus.Draft)
+            {
+                throw new ConflictException($"Admission with id {model.Id.Value} is {existing.Status} and can no longer be edited.");
+            }
+
+            existing.Title = model.Title;
+            existing.Description = model.Description;
+            existing.OpensAt = model.OpensAt;
+            existing.ClosesAt = model.ClosesAt;
+            existing.HoldMinutes = model.HoldMinutes;
+
+            existing = await UpdateAsync(existing);
+            return ToDto(existing);
+        }
+
         var entity = new Admission
         {
             Title = model.Title,
