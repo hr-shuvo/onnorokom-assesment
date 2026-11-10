@@ -7,18 +7,29 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Framework.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddHoldandAdmissionEntity : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "Shift",
-                table: "AcademicClass",
-                type: "integer",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "text");
+            migrationBuilder.CreateTable(
+                name: "AcademicClass",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    TotalSeats = table.Column<int>(type: "integer", nullable: false),
+                    Shift = table.Column<int>(type: "integer", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademicClass", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "Admission",
@@ -64,24 +75,25 @@ namespace Framework.Data.Migrations
                 {
                     table.PrimaryKey("PK_AdmissionHold", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AcademicClass_Name",
+                table: "AcademicClass",
+                column: "Name",
+                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "AcademicClass");
+
+            migrationBuilder.DropTable(
                 name: "Admission");
 
             migrationBuilder.DropTable(
                 name: "AdmissionHold");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Shift",
-                table: "AcademicClass",
-                type: "text",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "integer");
         }
     }
 }

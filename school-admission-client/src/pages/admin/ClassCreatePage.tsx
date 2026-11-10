@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { getErrorMessage } from "../../lib/http-client";
 import { academicClassService } from "../../services/academic-class-service";
-import { enumService, type EnumOption } from "../../services/enum-service";
+import { useShifts } from "../../hooks/use-shifts";
 import { academicClassSchema, type AcademicClassFormValues } from "../../components/academic-classes/academic-class-schema";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -31,23 +31,12 @@ const emptyValues: AcademicClassFormValues = {
 const ClassCreatePage = () => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
-  const [shifts, setShifts] = useState<EnumOption[]>([]);
-  const [isLoadingShifts, setIsLoadingShifts] = useState(true);
+  const { data: shifts = [], isLoading: isLoadingShifts } = useShifts();
 
   const form = useForm<AcademicClassFormValues>({
     resolver: zodResolver(academicClassSchema),
     defaultValues: emptyValues,
   });
-
-  useEffect(() => {
-    const loadShifts = async () => {
-      setIsLoadingShifts(true);
-      const result = await enumService.loadShifts();
-      setShifts(result);
-      setIsLoadingShifts(false);
-    };
-    loadShifts();
-  }, []);
 
   const onSubmit = async (values: AcademicClassFormValues) => {
     setIsSaving(true);

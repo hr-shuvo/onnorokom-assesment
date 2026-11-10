@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "../../lib/http-client";
 import { academicClassService } from "../../services/academic-class-service";
 import type { AcademicClass } from "../../types/academic-class";
-import { enumService, type EnumOption } from "../../services/enum-service";
+import { useShifts } from "../../hooks/use-shifts";
 import { academicClassSchema, type AcademicClassFormValues } from "../../components/academic-classes/academic-class-schema";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -29,8 +29,7 @@ const ClassEditPage = () => {
   const [academicClass, setAcademicClass] = useState<AcademicClass | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [shifts, setShifts] = useState<EnumOption[]>([]);
-  const [isLoadingShifts, setIsLoadingShifts] = useState(true);
+  const { data: shifts = [], isLoading: isLoadingShifts } = useShifts();
 
   const form = useForm<AcademicClassFormValues>({
     resolver: zodResolver(academicClassSchema),
@@ -51,16 +50,6 @@ const ClassEditPage = () => {
       form.reset(academicClass);
     }
   }, [academicClass, form]);
-
-  useEffect(() => {
-    const loadShifts = async () => {
-      setIsLoadingShifts(true);
-      const result = await enumService.loadShifts();
-      setShifts(result);
-      setIsLoadingShifts(false);
-    };
-    loadShifts();
-  }, []);
 
   if (isLoading) {
     return <Loading />;

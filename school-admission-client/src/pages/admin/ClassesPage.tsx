@@ -6,6 +6,7 @@ import { getErrorMessage } from "../../lib/http-client";
 import { academicClassService } from "../../services/academic-class-service";
 import type { AcademicClass, PagedResult } from "../../types/academic-class";
 import { useDebouncedValue } from "../../hooks/use-debounced-value";
+import { useShifts } from "../../hooks/use-shifts";
 import { getAcademicClassColumns } from "../../components/academic-classes/columns";
 import { ConfirmDeleteDialog } from "../../components/ui/confirm-delete-dialog";
 import { DataTable } from "../../components/ui/data-table";
@@ -27,6 +28,7 @@ const ClassesPage = () => {
   const [data, setData] = useState<PagedResult<AcademicClass> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+  const { data: shifts = [] } = useShifts();
 
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
@@ -88,11 +90,18 @@ const ClassesPage = () => {
     }
   };
 
+  const shiftLabels = shifts.reduce<Record<string, string>>((labels, option) => {
+    labels[option.name] = option.name;
+    labels[String(option.value)] = option.name;
+    return labels;
+  }, {});
+
   const columns = getAcademicClassColumns({
     onToggleStatus: handleToggleStatus,
     isTogglingStatus: isLoading,
     onEdit: (academicClass) => navigate(`/admin/classes/${academicClass.id}/edit`),
     onDelete: setDeletingClass,
+    shiftLabels,
   });
 
   return (

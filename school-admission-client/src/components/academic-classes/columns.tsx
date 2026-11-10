@@ -9,6 +9,7 @@ interface ColumnsOptions {
   isTogglingStatus: boolean;
   onEdit: (academicClass: AcademicClass) => void;
   onDelete: (academicClass: AcademicClass) => void;
+  shiftLabels: Record<string, string>;
 }
 
 export function getAcademicClassColumns({
@@ -16,6 +17,7 @@ export function getAcademicClassColumns({
   isTogglingStatus,
   onEdit,
   onDelete,
+  shiftLabels,
 }: ColumnsOptions): ColumnDef<AcademicClass>[] {
   return [
     {
@@ -29,6 +31,7 @@ export function getAcademicClassColumns({
     {
       accessorKey: "shift",
       header: "Shift",
+      cell: ({ row }) => shiftLabels[row.original.shift] ?? row.original.shift,
     },
     {
       accessorKey: "totalSeats",

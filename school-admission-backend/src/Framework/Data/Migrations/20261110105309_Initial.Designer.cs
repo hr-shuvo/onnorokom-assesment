@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Framework.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261110102900_AddHoldandAdmissionEntity")]
-    partial class AddHoldandAdmissionEntity
+    [Migration("20261110105309_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
