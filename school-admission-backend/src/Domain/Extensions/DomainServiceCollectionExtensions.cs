@@ -10,6 +10,7 @@ public static class DomainServiceCollectionExtensions
     public static IServiceCollection AddDomainServices(this IServiceCollection services)
     {
         services.AddScoped<IAcademicClassService, AcademicClassService>();
+        services.AddScoped<IAdmissionService, AdmissionService>();
 
         services.AddSingleton(new EntityAssemblyOptions(typeof(DomainServiceCollectionExtensions).Assembly));
 
