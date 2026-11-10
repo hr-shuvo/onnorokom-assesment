@@ -18,6 +18,7 @@ export interface AdmissionInput {
   opensAt: string;
   closesAt: string;
   holdMinutes: number;
+  status: AdmissionStatus;
 }
 
 export interface PagedResult<T> {

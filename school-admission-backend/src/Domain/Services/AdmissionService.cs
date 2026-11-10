@@ -5,6 +5,7 @@ using Domain.Services.Interfaces;
 using Framework.Exceptions;
 using Framework.Repositories;
 using Framework.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Services;
 
@@ -41,13 +42,23 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
 
     public async Task<AdmissionDto> SaveAsync(AdmissionVm model)
     {
+        if (model.Status == AdmissionStatus.Archived)
+        {
+            throw new BadRequestException("Admission cannot be set to Archived directly; use the status-change action instead.");
+        }
+
         if (model.Id.HasValue)
         {
             var existing = await GetByIdAsync(model.Id.Value);
 
-            if (existing.Status != AdmissionStatus.Draft)
+            if (existing.Status == AdmissionStatus.Archived)
             {
-                throw new ConflictException($"Admission with id {model.Id.Value} is {existing.Status} and can no longer be edited.");
+                throw new ConflictException($"Admission with id {model.Id.Value} is Archived and can no longer be edited.");
+            }
+
+            if (model.Status == AdmissionStatus.Published)
+            {
+                await EnsureNoOtherPublishedAsync(model.Id.Value);
             }
 
             existing.Title = model.Title;
@@ -55,9 +66,15 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
             existing.OpensAt = model.OpensAt;
             existing.ClosesAt = model.ClosesAt;
             existing.HoldMinutes = model.HoldMinutes;
+            existing.Status = model.Status;
 
             existing = await UpdateAsync(existing);
             return ToDto(existing);
+        }
+
+        if (model.Status == AdmissionStatus.Published)
+        {
+            await EnsureNoOtherPublishedAsync(excludingId: null);
         }
 
         var entity = new Admission
@@ -67,26 +84,45 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
             OpensAt = model.OpensAt,
             ClosesAt = model.ClosesAt,
             HoldMinutes = model.HoldMinutes,
-            Status = AdmissionStatus.Draft
+            Status = model.Status
         };
 
         entity = await CreateAsync(entity);
         return ToDto(entity);
     }
 
-    public async Task<AdmissionDto> ChangeStatusAsync(long id)
+    public async Task<AdmissionDto> ChangeStatusAsync(long id, AdmissionStatus status)
     {
         var entity = await GetByIdAsync(id);
 
-        entity.Status = entity.Status switch
+        if (entity.Status == AdmissionStatus.Archived)
         {
-            AdmissionStatus.Draft => AdmissionStatus.Published,
-            AdmissionStatus.Published => AdmissionStatus.Archived,
-            _ => throw new ConflictException($"Admission with id {id} is already Archived and cannot change status further.")
-        };
+            throw new ConflictException($"Admission with id {id} is Archived and its status can no longer be changed.");
+        }
 
+        if (status == AdmissionStatus.Published)
+        {
+            await EnsureNoOtherPublishedAsync(id);
+        }
+
+        entity.Status = status;
         entity = await UpdateAsync(entity);
         return ToDto(entity);
+    }
+
+    private async Task EnsureNoOtherPublishedAsync(long? excludingId)
+    {
+        var query = Query().Where(x => x.Status == AdmissionStatus.Published);
+
+        if (excludingId.HasValue)
+        {
+            query = query.Where(x => x.Id != excludingId.Value);
+        }
+
+        if (await query.AnyAsync())
+        {
+            throw new ConflictException("Another admission is already Published. Archive it before publishing a new one.");
+        }
     }
 
     private static AdmissionDto ToDto(Admission entity) => new()

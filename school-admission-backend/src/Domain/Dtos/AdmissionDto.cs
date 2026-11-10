@@ -35,6 +35,8 @@ public class AdmissionVm
 
     [Range(1, int.MaxValue)]
     public int HoldMinutes { get; set; } = 10;
+
+    public AdmissionStatus Status { get; set; } = AdmissionStatus.Draft;
 }
 
 public class AdmissionQueryParams : Queryparams

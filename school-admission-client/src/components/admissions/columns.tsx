@@ -1,14 +1,21 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { PencilIcon } from "lucide-react";
+import { ChevronDownIcon, PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Admission } from "../../types/admission";
 
 interface ColumnsOptions {
-  onChangeStatus: (admission: Admission) => void;
+  onChangeStatus: (admission: Admission, status: string) => void;
   isChangingStatus: boolean;
   onEdit: (admission: Admission) => void;
   statusLabels: Record<string, string>;
+  statuses: string[];
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -17,17 +24,12 @@ const STATUS_STYLES: Record<string, string> = {
   Archived: "bg-secondary text-secondary-foreground",
 };
 
-const NEXT_ACTION_LABEL: Record<string, string | null> = {
-  Draft: "Publish",
-  Published: "Archive",
-  Archived: null,
-};
-
 export function getAdmissionColumns({
   onChangeStatus,
   isChangingStatus,
   onEdit,
   statusLabels,
+  statuses,
 }: ColumnsOptions): ColumnDef<Admission>[] {
   return [
     {
@@ -66,21 +68,31 @@ export function getAdmissionColumns({
       header: () => <span className="block text-right">Actions</span>,
       cell: ({ row }) => {
         const admission = row.original;
-        const nextActionLabel = NEXT_ACTION_LABEL[admission.status];
+        const isLocked = admission.status === "Archived";
+        const otherStatuses = statuses.filter((status) => status !== admission.status);
 
         return (
           <div className="flex items-center justify-end gap-2">
-            {nextActionLabel && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isChangingStatus}
-                onClick={() => onChangeStatus(admission)}
-              >
-                {nextActionLabel}
-              </Button>
+            {!isLocked && (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button variant="outline" size="sm" disabled={isChangingStatus}>
+                      Status
+                      <ChevronDownIcon />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="end">
+                  {otherStatuses.map((status) => (
+                    <DropdownMenuItem key={status} onClick={() => onChangeStatus(admission, status)}>
+                      {statusLabels[status] ?? status}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
-            {admission.status === "Draft" && (
+            {admission.status !== "Archived" && (
               <Button variant="ghost" size="icon-sm" onClick={() => onEdit(admission)}>
                 <PencilIcon />
                 <span className="sr-only">Edit</span>

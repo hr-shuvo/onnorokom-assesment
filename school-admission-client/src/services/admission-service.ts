@@ -21,8 +21,10 @@ export const admissionService = {
     return data;
   },
 
-  async changeStatus(id: number) {
-    const { data } = await httpClient.patch<Admission>(`${BASE_PATH}/${id}/status`);
+  async changeStatus(id: number, status: string) {
+    const { data } = await httpClient.patch<Admission>(`${BASE_PATH}/${id}/status`, null, {
+      params: { status },
+    });
     return data;
   },
 };

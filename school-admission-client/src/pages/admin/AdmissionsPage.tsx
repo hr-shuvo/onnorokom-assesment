@@ -63,10 +63,10 @@ const AdmissionsPage = () => {
     setSearchParams({ page: "1", pageSize: String(newPageSize), q: search }, { replace: true });
   };
 
-  const handleChangeStatus = async (admission: Admission) => {
+  const handleChangeStatus = async (admission: Admission, status: string) => {
     setIsLoading(true);
     try {
-      await admissionService.changeStatus(admission.id);
+      await admissionService.changeStatus(admission.id, status);
       refetch();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -85,6 +85,7 @@ const AdmissionsPage = () => {
     isChangingStatus: isLoading,
     onEdit: (admission) => navigate(`/admin/admissions/${admission.id}/edit`),
     statusLabels,
+    statuses: statuses.map((option) => option.name),
   });
 
   return (

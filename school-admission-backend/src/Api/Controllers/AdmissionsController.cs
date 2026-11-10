@@ -1,4 +1,5 @@
 using Domain.Dtos;
+using Domain.Enums;
 using Domain.Services.Interfaces;
 using Framework.Common.Controllers;
 using Framework.Models;
@@ -40,9 +41,9 @@ public class AdmissionsController : BaseApiController
     }
 
     [HttpPatch("{id:long}/status")]
-    public async Task<IActionResult> ChangeStatus(long id)
+    public async Task<IActionResult> ChangeStatus(long id, [FromQuery] AdmissionStatus status)
     {
-        var result = await _admissionService.ChangeStatusAsync(id);
+        var result = await _admissionService.ChangeStatusAsync(id, status);
         return Ok(result);
     }
 }

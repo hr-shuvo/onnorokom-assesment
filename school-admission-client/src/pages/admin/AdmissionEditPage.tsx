@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays } from "date-fns";
 import { toast } from "sonner";
 
 import { getErrorMessage } from "../../lib/http-client";
@@ -10,10 +11,18 @@ import type { Admission } from "../../types/admission";
 import { admissionSchema, type AdmissionFormValues } from "../../components/admissions/admission-schema";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { DatePicker } from "../../components/ui/date-picker";
 import { Loading } from "../../components/ui/loading";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/form";
-
-const toDatetimeLocal = (value: string) => value.slice(0, 16);
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { useAdmissionStatuses } from "../../hooks/use-admission-statuses";
 
 const AdmissionEditPage = () => {
   const { id } = useParams();
@@ -22,10 +31,13 @@ const AdmissionEditPage = () => {
   const [admission, setAdmission] = useState<Admission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const { statuses } = useAdmissionStatuses();
+  const publishableStatuses = statuses.filter((status) => status.name !== "Archived");
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionSchema),
   });
+  const opensAt = useWatch({ control: form.control, name: "opensAt" });
 
   useEffect(() => {
     const loadAdmission = async () => {
@@ -38,25 +50,38 @@ const AdmissionEditPage = () => {
   }, [id]);
 
   useEffect(() => {
-    if (admission) {
+    if (admission && admission.status !== "Archived") {
       form.reset({
         title: admission.title,
         description: admission.description ?? "",
-        opensAt: toDatetimeLocal(admission.opensAt),
-        closesAt: toDatetimeLocal(admission.closesAt),
+        opensAt: new Date(admission.opensAt),
+        closesAt: new Date(admission.closesAt),
         holdMinutes: admission.holdMinutes,
+        status: admission.status,
       });
     }
   }, [admission, form]);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (admission?.status === "Archived") {
+      toast.error("Archived admissions can no longer be edited.");
+      navigate("/admin/admissions");
+    }
+  }, [admission, navigate]);
+
+  if (isLoading || admission?.status === "Archived") {
     return <Loading />;
   }
 
   const onSubmit = async (values: AdmissionFormValues) => {
     setIsSaving(true);
     try {
-      await admissionService.save({ ...values, id: Number(id) });
+      await admissionService.save({
+        ...values,
+        id: Number(id),
+        opensAt: values.opensAt.toISOString(),
+        closesAt: values.closesAt.toISOString(),
+      });
       toast.success("Admission updated.");
       navigate("/admin/admissions");
     } catch (err) {
@@ -92,7 +117,7 @@ const AdmissionEditPage = () => {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Optional description" />
+                  <Textarea {...field} placeholder="Optional description" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,7 +132,7 @@ const AdmissionEditPage = () => {
                 <FormItem>
                   <FormLabel>Opens At</FormLabel>
                   <FormControl>
-                    <Input {...field} type="datetime-local" />
+                    <DatePicker value={field.value} onChange={field.onChange} minDate={new Date()} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -120,7 +145,11 @@ const AdmissionEditPage = () => {
                 <FormItem>
                   <FormLabel>Closes At</FormLabel>
                   <FormControl>
-                    <Input {...field} type="datetime-local" />
+                    <DatePicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      minDate={opensAt ? addDays(opensAt, 1) : undefined}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,6 +170,31 @@ const AdmissionEditPage = () => {
                     onChange={(e) => field.onChange(e.target.valueAsNumber)}
                   />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="status"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a status" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {publishableStatuses.map((option) => (
+                      <SelectItem key={option.value} value={option.name}>
+                        {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
