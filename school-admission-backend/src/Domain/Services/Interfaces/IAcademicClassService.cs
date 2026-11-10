@@ -1,4 +1,4 @@
-using Domain.Dtos.AcademicClasses;
+using Domain.Dtos;
 using Domain.Entities;
 using Framework.Services;
 

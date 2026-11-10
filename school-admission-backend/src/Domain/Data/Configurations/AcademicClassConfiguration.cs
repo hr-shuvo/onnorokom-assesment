@@ -15,7 +15,7 @@ public class AcademicClassConfiguration : IEntityTypeConfiguration<AcademicClass
         builder.Property(x => x.Order).IsRequired();
         builder.Property(x => x.TotalSeats).IsRequired();
         builder.Property(x => x.IsActive).IsRequired();
-        builder.Property(x => x.Shift).IsRequired().HasConversion<string>();
+        builder.Property(x => x.Shift).IsRequired();
         builder.Property(x => x.CreatedAt).IsRequired();
     }
 }

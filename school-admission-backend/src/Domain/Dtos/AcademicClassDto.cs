@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Domain.Enums;
 using Framework.Models;
 
-namespace Domain.Dtos.AcademicClasses;
+namespace Domain.Dtos;
 
 public class AcademicClassDto
 {
