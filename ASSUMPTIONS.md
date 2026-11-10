@@ -9,3 +9,7 @@
 ## 2. Shared UI for Parents and Admins
 - The specifications require the same UI for both roles.
 - Core components and functionality are shared, but layouts are adapted to provide a role-specific user experience.
+
+## 3. UI Component Library
+- Use shadcn/ui instead of raw HTML or custom components.
+- Prefer existing shadcn/ui components to maintain a consistent UI.

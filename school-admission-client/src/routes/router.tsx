@@ -2,7 +2,8 @@ import { createBrowserRouter, Navigate } from "react-router";
 import AdminLayout from "../layouts/AdminLayout";
 import HomeLayout from "../layouts/HomeLayout";
 import ClassesPage from "../pages/admin/ClassesPage";
-import ClassFormPage from "../pages/admin/ClassFormPage";
+import ClassCreatePage from "../pages/admin/ClassCreatePage";
+import ClassEditPage from "../pages/admin/ClassEditPage";
 import HomePage from "../pages/HomePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
@@ -31,11 +32,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "classes/new",
-            element: <ClassFormPage />,
+            element: <ClassCreatePage />,
           },
           {
             path: "classes/:id/edit",
-            element: <ClassFormPage />,
+            element: <ClassEditPage />,
           },
         ],
       },

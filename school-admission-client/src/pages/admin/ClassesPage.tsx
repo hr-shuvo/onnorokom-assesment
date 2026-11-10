@@ -14,7 +14,7 @@ import { Input } from "../../components/ui/input";
 
 const DEFAULT_PAGE_SIZE = 20;
 
-export default function ClassesPage() {
+const ClassesPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -30,6 +30,19 @@ export default function ClassesPage() {
 
   const debouncedSearch = useDebouncedValue(searchInput, 300);
 
+  const refetch = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await academicClassService.load({ pageNumber: page, pageSize, search: search || undefined });
+      setData(result);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (debouncedSearch === search) return;
     setSearchParams(
@@ -42,28 +55,15 @@ export default function ClassesPage() {
     refetch();
   }, [page, pageSize, search]);
 
-  function goToPage(newPage: number) {
+  const goToPage = (newPage: number) => {
     setSearchParams({ page: String(newPage), pageSize: String(pageSize), q: search }, { replace: true });
-  }
+  };
 
-  function setPageSize(newPageSize: number) {
+  const setPageSize = (newPageSize: number) => {
     setSearchParams({ page: "1", pageSize: String(newPageSize), q: search }, { replace: true });
-  }
+  };
 
-  async function refetch() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await academicClassService.load({ pageNumber: page, pageSize, search: search || undefined });
-      setData(result);
-    } catch (err) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleToggleStatus(id: number) {
+  const handleToggleStatus = async (id: number) => {
     setIsLoading(true);
     try {
       await academicClassService.toggleStatus(id);
@@ -72,9 +72,9 @@ export default function ClassesPage() {
       toast.error(getErrorMessage(err));
       setIsLoading(false);
     }
-  }
+  };
 
-  async function handleDeleteConfirm() {
+  const handleDeleteConfirm = async () => {
     if (!deletingClass) return;
     setIsLoading(true);
     try {
@@ -86,7 +86,7 @@ export default function ClassesPage() {
       toast.error(getErrorMessage(err));
       setIsLoading(false);
     }
-  }
+  };
 
   const columns = getAcademicClassColumns({
     onToggleStatus: handleToggleStatus,
@@ -136,4 +136,6 @@ export default function ClassesPage() {
       />
     </div>
   );
-}
+};
+
+export default ClassesPage;
