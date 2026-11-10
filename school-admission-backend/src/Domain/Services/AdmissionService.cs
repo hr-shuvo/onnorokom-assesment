@@ -51,11 +51,6 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
         {
             var existing = await GetByIdAsync(model.Id.Value);
 
-            if (existing.Status == AdmissionStatus.Archived)
-            {
-                throw new ConflictException($"Admission with id {model.Id.Value} is Archived and can no longer be edited.");
-            }
-
             if (model.Status == AdmissionStatus.Published)
             {
                 await EnsureNoOtherPublishedAsync(model.Id.Value);
@@ -94,11 +89,6 @@ public class AdmissionService : BaseService<Admission>, IAdmissionService
     public async Task<AdmissionDto> ChangeStatusAsync(long id, AdmissionStatus status)
     {
         var entity = await GetByIdAsync(id);
-
-        if (entity.Status == AdmissionStatus.Archived)
-        {
-            throw new ConflictException($"Admission with id {id} is Archived and its status can no longer be changed.");
-        }
 
         if (status == AdmissionStatus.Published)
         {

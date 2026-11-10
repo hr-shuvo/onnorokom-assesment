@@ -12,7 +12,7 @@ import type { Admission } from "../../types/admission";
 
 interface ColumnsOptions {
   onChangeStatus: (admission: Admission, status: string) => void;
-  isChangingStatus: boolean;
+  changingStatusId: number | null;
   onEdit: (admission: Admission) => void;
   statusLabels: Record<string, string>;
   statuses: string[];
@@ -26,7 +26,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export function getAdmissionColumns({
   onChangeStatus,
-  isChangingStatus,
+  changingStatusId,
   onEdit,
   statusLabels,
   statuses,
@@ -68,36 +68,32 @@ export function getAdmissionColumns({
       header: () => <span className="block text-right">Actions</span>,
       cell: ({ row }) => {
         const admission = row.original;
-        const isLocked = admission.status === "Archived";
         const otherStatuses = statuses.filter((status) => status !== admission.status);
+        const isChanging = changingStatusId === admission.id;
 
         return (
           <div className="flex items-center justify-end gap-2">
-            {!isLocked && (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="outline" size="sm" disabled={isChangingStatus}>
-                      Status
-                      <ChevronDownIcon />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end">
-                  {otherStatuses.map((status) => (
-                    <DropdownMenuItem key={status} onClick={() => onChangeStatus(admission, status)}>
-                      {statusLabels[status] ?? status}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {admission.status !== "Archived" && (
-              <Button variant="ghost" size="icon-sm" onClick={() => onEdit(admission)}>
-                <PencilIcon />
-                <span className="sr-only">Edit</span>
-              </Button>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="outline" size="sm" disabled={isChanging}>
+                    Status
+                    <ChevronDownIcon />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                {otherStatuses.map((status) => (
+                  <DropdownMenuItem key={status} onClick={() => onChangeStatus(admission, status)}>
+                    {statusLabels[status] ?? status}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="icon-sm" onClick={() => onEdit(admission)}>
+              <PencilIcon />
+              <span className="sr-only">Edit</span>
+            </Button>
           </div>
         );
       },

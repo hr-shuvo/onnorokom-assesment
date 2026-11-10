@@ -26,6 +26,7 @@ const AdmissionsPage = () => {
   const [data, setData] = useState<PagedResult<Admission> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
+  const [changingStatusId, setChangingStatusId] = useState<number | null>(null);
   const { statuses } = useAdmissionStatuses();
 
   const debouncedSearch = useDebouncedValue(searchInput, 300);
@@ -64,13 +65,20 @@ const AdmissionsPage = () => {
   };
 
   const handleChangeStatus = async (admission: Admission, status: string) => {
-    setIsLoading(true);
+    if (changingStatusId !== null) return;
+
+    setChangingStatusId(admission.id);
     try {
-      await admissionService.changeStatus(admission.id, status);
-      refetch();
+      const updated = await admissionService.changeStatus(admission.id, status);
+      setData((prev) =>
+        prev
+          ? { ...prev, items: prev.items.map((item) => (item.id === updated.id ? updated : item)) }
+          : prev
+      );
     } catch (err) {
       toast.error(getErrorMessage(err));
-      setIsLoading(false);
+    } finally {
+      setChangingStatusId(null);
     }
   };
 
@@ -82,7 +90,7 @@ const AdmissionsPage = () => {
 
   const columns = getAdmissionColumns({
     onChangeStatus: handleChangeStatus,
-    isChangingStatus: isLoading,
+    changingStatusId,
     onEdit: (admission) => navigate(`/admin/admissions/${admission.id}/edit`),
     statusLabels,
     statuses: statuses.map((option) => option.name),

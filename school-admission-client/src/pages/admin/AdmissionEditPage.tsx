@@ -50,26 +50,19 @@ const AdmissionEditPage = () => {
   }, [id]);
 
   useEffect(() => {
-    if (admission && admission.status !== "Archived") {
+    if (admission) {
       form.reset({
         title: admission.title,
         description: admission.description ?? "",
         opensAt: new Date(admission.opensAt),
         closesAt: new Date(admission.closesAt),
         holdMinutes: admission.holdMinutes,
-        status: admission.status,
+        status: admission.status === "Archived" ? "Draft" : admission.status,
       });
     }
   }, [admission, form]);
 
-  useEffect(() => {
-    if (admission?.status === "Archived") {
-      toast.error("Archived admissions can no longer be edited.");
-      navigate("/admin/admissions");
-    }
-  }, [admission, navigate]);
-
-  if (isLoading || admission?.status === "Archived") {
+  if (isLoading) {
     return <Loading />;
   }
 
