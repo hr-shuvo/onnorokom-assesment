@@ -1,18 +1,12 @@
-import { httpClient } from "./client";
+import { httpClient } from "../lib/http-client";
 import type { AcademicClass, AcademicClassInput, PagedResult } from "../types/academic-class";
 
 const BASE_PATH = "/api/classes";
 
-export interface ListAcademicClassesParams {
-  pageNumber?: number;
-  pageSize?: number;
-  search?: string;
-}
-
 export const academicClassService = {
-  async load(params: ListAcademicClassesParams = {}) {
+  async load(pageNumber?: number, pageSize?: number, search?: string) {
     const { data } = await httpClient.get<PagedResult<AcademicClass>>(BASE_PATH, {
-      params,
+      params: { pageNumber, pageSize, search },
     });
     return data;
   },

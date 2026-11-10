@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router";
-import { getErrorMessage } from "../../api/client";
-import { academicClassService } from "../../api/academic-classes";
+import { getErrorMessage } from "../../lib/http-client";
+import { academicClassService } from "../../services/academic-class-service";
 import type { AcademicClass, PagedResult } from "../../types/academic-class";
 import { useDebouncedValue } from "../../hooks/use-debounced-value";
 import { getAcademicClassColumns } from "../../components/academic-classes/columns";
@@ -34,7 +34,7 @@ const ClassesPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await academicClassService.load({ pageNumber: page, pageSize, search: search || undefined });
+      const result = await academicClassService.load(page, pageSize, search || undefined);
       setData(result);
     } catch (err) {
       setError(err);

@@ -11,7 +11,6 @@ type ProblemDetails = {
   errors?: Record<string, string[]>;
 };
 
-
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ProblemDetails>(error)) {
     if (!error.response) {

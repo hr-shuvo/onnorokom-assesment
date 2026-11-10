@@ -4,9 +4,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 
-import { getErrorMessage } from "../../api/client";
-import { academicClassService } from "../../api/academic-classes";
-import { enumService, type EnumOption } from "../../api/enums";
+import { getErrorMessage } from "../../lib/http-client";
+import { academicClassService } from "../../services/academic-class-service";
+import { enumService, type EnumOption } from "../../services/enum-service";
 import { academicClassSchema, type AcademicClassFormValues } from "../../components/academic-classes/academic-class-schema";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
