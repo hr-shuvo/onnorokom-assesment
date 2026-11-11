@@ -1,6 +1,7 @@
 import axios from "axios";
 import { httpClient } from "../lib/http-client";
-import type { AdmissionHold, ApplyHoldInput } from "../types/hold";
+import type { AdmissionHold, ApplyHoldInput, HoldStatus } from "../types/hold";
+import type { PagedResult } from "../types/academic-class";
 
 const BASE_PATH = "/api";
 
@@ -34,6 +35,17 @@ export const holdService = {
 
   async cancel(holdId: number) {
     const { data } = await httpClient.post<AdmissionHold>(`${BASE_PATH}/holds/${holdId}/cancel`);
+    return data;
+  },
+
+  async loadForClass(
+    classId: number,
+    params: { pageNumber?: number; pageSize?: number; status?: HoldStatus } = {}
+  ) {
+    const { data } = await httpClient.get<PagedResult<AdmissionHold>>(
+      `${BASE_PATH}/classes/${classId}/holds`,
+      { params }
+    );
     return data;
   },
 };

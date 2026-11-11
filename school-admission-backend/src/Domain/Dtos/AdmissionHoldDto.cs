@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Domain.Enums;
+using Framework.Models;
 
 namespace Domain.Dtos;
 
@@ -25,4 +26,9 @@ public class ApplyHoldVm
 
     [MaxLength(20)]
     public string GuardianPhone { get; set; }
+}
+
+public class AdminHoldQueryParams : Queryparams
+{
+    public HoldStatus? Status { get; set; }
 }

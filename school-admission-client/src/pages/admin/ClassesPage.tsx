@@ -101,6 +101,7 @@ const ClassesPage = () => {
     isTogglingStatus: isLoading,
     onEdit: (academicClass) => navigate(`/admin/classes/${academicClass.id}/edit`),
     onDelete: setDeletingClass,
+    onViewApplicants: (academicClass) => navigate(`/admin/classes/${academicClass.id}/applicants`),
     shiftLabels,
   });
 

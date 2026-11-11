@@ -43,7 +43,12 @@ export function getErrorMessage(error: unknown): string {
     const data = error.response.data;
     const firstValidationError = data?.errors ? Object.values(data.errors).flat()[0] : undefined;
 
-    return firstValidationError ?? data?.detail ?? `Request failed (${error.response.status}). Please try again.`;
+    return (
+      firstValidationError ??
+      data?.title ??
+      data?.detail ??
+      `Request failed (${error.response.status}). Please try again.`
+    );
   }
 
   return "Something went wrong. Please try again.";

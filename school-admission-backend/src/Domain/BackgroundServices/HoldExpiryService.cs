@@ -38,9 +38,6 @@ public class HoldExpiryService : BackgroundService
         var classRepository = scope.ServiceProvider.GetRequiredService<IBaseRepository<AcademicClass>>();
         var holdService = scope.ServiceProvider.GetRequiredService<IAdmissionHoldService>();
 
-        // Include inactive classes too: ExpireAndPromoteAsync is what cancels a
-        // closed class's waitlist, and that should happen even without further
-        // lazy-triggering API traffic on that class.
         var classIds = await classRepository.Query()
             .Select(x => x.Id)
             .ToListAsync(stoppingToken);

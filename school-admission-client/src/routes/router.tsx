@@ -4,6 +4,7 @@ import HomeLayout from "../layouts/HomeLayout";
 import ClassesPage from "../pages/admin/ClassesPage";
 import ClassCreatePage from "../pages/admin/ClassCreatePage";
 import ClassEditPage from "../pages/admin/ClassEditPage";
+import ClassApplicantsPage from "../pages/admin/ClassApplicantsPage";
 import AdmissionSettingsPage from "../pages/admin/AdmissionSettingsPage";
 import HomePage from "../pages/HomePage";
 import AdmissionStudentInfoPage from "../pages/AdmissionStudentInfoPage";
@@ -48,6 +49,10 @@ export const router = createBrowserRouter([
           {
             path: "classes/:id/edit",
             element: <ClassEditPage />,
+          },
+          {
+            path: "classes/:classId/applicants",
+            element: <ClassApplicantsPage />,
           },
           {
             path: "admission",

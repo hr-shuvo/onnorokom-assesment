@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Services.Interfaces;
 using Framework.Common.Controllers;
 using Framework.Exceptions;
+using Framework.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -40,6 +41,15 @@ public class AdmissionHoldController : BaseApiController
 
         var hold = await _holdService.JoinWaitlistAsync(classId, studentId, model?.StudentName, model?.GuardianPhone);
         return StatusCode(201, ToDto(hold));
+    }
+
+    [HttpGet("classes/{classId:long}/holds")]
+    public async Task<IActionResult> GetHoldsForClass(long classId, [FromQuery] AdminHoldQueryParams queryParams)
+    {
+        var classDto = await _classService.GetAsync(classId);
+        var (count, items) = await _holdService.LoadByClassAsync(classId, queryParams);
+        var dtos = items.Select(x => ToDto(x, classDto));
+        return Ok(new PagedList<AdmissionHoldDto>(dtos, count, queryParams.PageNumber, queryParams.PageSize));
     }
 
     [HttpPost("holds/{id:long}/confirm")]

@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using Domain.Dtos;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Services.Interfaces;
@@ -52,6 +53,23 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         var heldSeats = seatCounts?.HeldSeats ?? 0;
 
         return (academicClass.TotalSeats - confirmedSeats - heldSeats, confirmedSeats);
+    }
+
+    public async Task<(int Count, IEnumerable<AdmissionHold> Items)> LoadByClassAsync(long classId, AdminHoldQueryParams queryParams)
+    {
+        _ = await _classRepository.Get(classId)
+            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
+
+        var query = Query().Where(x => x.ClassId == classId);
+
+        if (queryParams.Status.HasValue)
+        {
+            query = query.Where(x => x.Status == queryParams.Status.Value);
+        }
+
+        query = query.OrderByDescending(x => x.CreatedAt);
+
+        return await LoadAsync(query, queryParams.PageNumber, queryParams.PageSize);
     }
 
     public async Task<bool> HasActiveApplicationAsync(string studentId)

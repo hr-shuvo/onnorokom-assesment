@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Domain.Dtos;
+using Domain.Entities;
 using Framework.Services;
 
 namespace Domain.Services.Interfaces;
@@ -14,4 +15,5 @@ public interface IAdmissionHoldService : IBaseService<AdmissionHold>
     Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName, string guardianPhone);
     Task<AdmissionHold> ConfirmAsync(long holdId, string studentId);
     Task<AdmissionHold> CancelAsync(long holdId, string studentId);
+    Task<(int Count, IEnumerable<AdmissionHold> Items)> LoadByClassAsync(long classId, AdminHoldQueryParams queryParams);
 }

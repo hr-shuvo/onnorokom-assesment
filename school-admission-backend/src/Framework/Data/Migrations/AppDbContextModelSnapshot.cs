@@ -55,10 +55,7 @@ namespace Framework.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("AcademicClass", (string)null);
+                    b.ToTable("AcademicClass");
                 });
 
             modelBuilder.Entity("Domain.Entities.AdmissionHold", b =>
@@ -109,7 +106,7 @@ namespace Framework.Data.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("AdmissionHold", (string)null);
+                    b.ToTable("AdmissionHold");
                 });
 #pragma warning restore 612, 618
         }

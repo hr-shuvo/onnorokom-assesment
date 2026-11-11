@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { PencilIcon, Trash2Icon } from "lucide-react";
+import { PencilIcon, Trash2Icon, UsersIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { AcademicClass } from "../../types/academic-class";
@@ -9,6 +9,7 @@ interface ColumnsOptions {
   isTogglingStatus: boolean;
   onEdit: (academicClass: AcademicClass) => void;
   onDelete: (academicClass: AcademicClass) => void;
+  onViewApplicants: (academicClass: AcademicClass) => void;
   shiftLabels: Record<string, string>;
 }
 
@@ -17,6 +18,7 @@ export function getAcademicClassColumns({
   isTogglingStatus,
   onEdit,
   onDelete,
+  onViewApplicants,
   shiftLabels,
 }: ColumnsOptions): ColumnDef<AcademicClass>[] {
   return [
@@ -65,6 +67,10 @@ export function getAcademicClassColumns({
         const academicClass = row.original;
         return (
           <div className="text-right">
+            <Button variant="ghost" size="icon-sm" onClick={() => onViewApplicants(academicClass)}>
+              <UsersIcon />
+              <span className="sr-only">View Applicants</span>
+            </Button>
             <Button variant="ghost" size="icon-sm" onClick={() => onEdit(academicClass)}>
               <PencilIcon />
               <span className="sr-only">Edit</span>
