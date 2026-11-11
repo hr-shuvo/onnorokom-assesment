@@ -6,6 +6,8 @@ import ClassCreatePage from "../pages/admin/ClassCreatePage";
 import ClassEditPage from "../pages/admin/ClassEditPage";
 import AdmissionSettingsPage from "../pages/admin/AdmissionSettingsPage";
 import HomePage from "../pages/HomePage";
+import AdmissionStudentInfoPage from "../pages/AdmissionStudentInfoPage";
+import AdmissionApplicationPage from "../pages/AdmissionApplicationPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 
@@ -18,6 +20,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "admissions",
+        element: <AdmissionStudentInfoPage />,
+      },
+      {
+        path: "admissions/application",
+        element: <AdmissionApplicationPage />,
       },
       {
         path: "admin",

@@ -1,8 +1,17 @@
 import axios from "axios";
+import { useStudentStore } from "../stores/student-store";
 
 export const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080",
   headers: { "Content-Type": "application/json" },
+});
+
+httpClient.interceptors.request.use((config) => {
+  const studentId = useStudentStore.getState().applicant?.studentId;
+  if (studentId) {
+    config.headers["X-Student-Id"] = studentId;
+  }
+  return config;
 });
 
 type ProblemDetails = {

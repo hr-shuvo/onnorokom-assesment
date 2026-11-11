@@ -5,6 +5,7 @@ export interface AcademicClass {
   name: string;
   order: number;
   totalSeats: number;
+  availableSeats: number;
   isActive: boolean;
   shift: Shift;
   createdAt: string;

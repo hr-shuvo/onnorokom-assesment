@@ -1,8 +1,9 @@
-import { ClipboardList, GraduationCap, LayoutGrid } from "lucide-react";
-import { NavLink, Outlet, useLocation } from "react-router";
+import { ClipboardList, GraduationCap, LayoutGrid, LogOut } from "lucide-react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -63,6 +64,16 @@ export default function AdminLayout() {
             </SidebarGroup>
           ))}
         </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Exit Admin" render={<Link to="/" />}>
+                <LogOut />
+                <span>Exit Admin</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
 
       <SidebarInset>
