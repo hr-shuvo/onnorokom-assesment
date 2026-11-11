@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import type { AdmissionHold, HoldStatus } from "../../types/hold";
 
-const STATUS_STYLES: Record<HoldStatus, string> = {
+export const STATUS_STYLES: Record<HoldStatus, string> = {
   Waiting: "bg-muted text-muted-foreground",
   Held: "bg-amber-500/10 text-amber-600",
   Confirmed: "bg-primary/10 text-primary",
@@ -10,7 +10,7 @@ const STATUS_STYLES: Record<HoldStatus, string> = {
   Cancelled: "bg-muted text-muted-foreground",
 };
 
-function formatDate(value: string | null) {
+export function formatDate(value: string | null) {
   return value ? new Date(value).toLocaleString() : "—";
 }
 

@@ -74,6 +74,21 @@ const AdmissionApplicationPage = () => {
     }
   };
 
+  // live data refresh every 4s
+ useEffect(() => {
+    if (!applicant || !isOpen || isLoading) return;
+
+    const interval = setInterval(() => {
+      refreshClasses().catch(() => {});
+      holdService
+        .getMine()
+        .then(setHold)
+        .catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [applicant, isOpen, isLoading]);
+
   const onApply = async (classId: number, mode: "apply" | "waitlist") => {
     if (!applicant) return;
 

@@ -32,6 +32,7 @@ public class AcademicClassesController : BaseApiController
         return Ok(result);
     }
 
+    [HttpPost]
     [HttpPost("save")]
     public async Task<IActionResult> Save(AcademicClassVm model)
     {

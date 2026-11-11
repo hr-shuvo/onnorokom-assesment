@@ -8,6 +8,7 @@ using Framework.Exceptions;
 using Framework.Repositories;
 using Framework.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Npgsql;
 
 namespace Domain.Services;
@@ -16,14 +17,28 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 {
     private readonly IBaseRepository<AcademicClass> _classRepository;
     private readonly ISettingsService<AdmissionSettings> _admissionSettings;
+    private readonly IConfiguration _configuration;
 
     public AdmissionHoldService(
         IBaseRepository<AdmissionHold> repository,
         IBaseRepository<AcademicClass> classRepository,
-        ISettingsService<AdmissionSettings> admissionSettings) : base(repository)
+        ISettingsService<AdmissionSettings> admissionSettings,
+        IConfiguration configuration) : base(repository)
     {
         _classRepository = classRepository;
         _admissionSettings = admissionSettings;
+        _configuration = configuration;
+    }
+
+    private TimeSpan GetHoldDuration(AdmissionSettings admission)
+    {
+        var raw = _configuration["HOLD_DURATION_SECONDS"];
+        if (!string.IsNullOrWhiteSpace(raw) && int.TryParse(raw, out var seconds) && seconds > 0)
+        {
+            return TimeSpan.FromSeconds(seconds);
+        }
+
+        return TimeSpan.FromMinutes(admission.HoldMinutes);
     }
 
     public async Task<int> GetAvailableSeatsAsync(long classId)
@@ -88,6 +103,14 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             .FirstOrDefaultAsync();
     }
 
+    public async Task<IEnumerable<AdmissionHold>> GetHoldsForStudentAsync(string studentId)
+    {
+        return await Query()
+            .Where(x => x.StudentId == studentId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task ExpireAndPromoteAsync(long classId)
     {
         await ExpireHeldHoldsAsync(classId);
@@ -106,6 +129,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         await PromoteWaitlistAsync(classId, admission);
     }
 
+    // making status expired
     private async Task ExpireHeldHoldsAsync(long classId)
     {
         var now = DateTime.UtcNow;
@@ -122,6 +146,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         await UpdateRangeAsync(expiredHolds);
     }
 
+    // making status cancel
     private async Task CancelWaitlistAsync(long classId)
     {
         var waitingHolds = await Query()
@@ -205,7 +230,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             GuardianPhone = guardianPhone,
             ClassId = classId,
             Status = HoldStatus.Held,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(admission.HoldMinutes)
+            ExpiresAt = DateTime.UtcNow.Add(GetHoldDuration(admission))
         };
 
         await CreateAsync(hold);

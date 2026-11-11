@@ -1,21 +1,20 @@
-import axios from "axios";
 import { httpClient } from "../lib/http-client";
 import type { AdmissionHold, ApplyHoldInput, HoldStatus } from "../types/hold";
 import type { PagedResult } from "../types/academic-class";
 
 const BASE_PATH = "/api";
 
+const ACTIVE_STATUSES: HoldStatus[] = ["Waiting", "Held", "Confirmed"];
+
 export const holdService = {
+  async getMyHolds() {
+    const { data } = await httpClient.get<AdmissionHold[]>(`${BASE_PATH}/me/holds`);
+    return data;
+  },
+
   async getMine() {
-    try {
-      const { data } = await httpClient.get<AdmissionHold>(`${BASE_PATH}/holds/me`);
-      return data;
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
-        return null;
-      }
-      throw err;
-    }
+    const holds = await holdService.getMyHolds();
+    return holds.find((hold) => ACTIVE_STATUSES.includes(hold.status)) ?? null;
   },
 
   async apply(classId: number, input: ApplyHoldInput) {

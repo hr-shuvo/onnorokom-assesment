@@ -12,7 +12,7 @@ namespace Api.Controllers;
 [Route("api")]
 public class AdmissionHoldController : BaseApiController
 {
-    private static readonly Regex StudentIdPattern = new(@"^\d{8}$", RegexOptions.Compiled);
+    private static readonly Regex StudentIdPattern = new(@"^\d{17}$", RegexOptions.Compiled);
 
     private readonly IAdmissionHoldService _holdService;
     private readonly IAcademicClassService _classService;
@@ -70,19 +70,44 @@ public class AdmissionHoldController : BaseApiController
         return Ok(ToDto(hold));
     }
 
-    [HttpGet("holds/me")]
-    public async Task<IActionResult> GetMyActiveHold([FromHeader(Name = "X-Student-Id")] string studentId)
+    [HttpDelete("holds/{id:long}")]
+    public async Task<IActionResult> Delete(long id, [FromHeader(Name = "X-Student-Id")] string studentId)
     {
         EnsureValidStudentId(studentId);
 
-        var hold = await _holdService.GetActiveHoldAsync(studentId);
-        if (hold == null)
+        var hold = await _holdService.CancelAsync(id, studentId);
+        return Ok(ToDto(hold));
+    }
+
+    [HttpGet("holds/{id:long}")]
+    public async Task<IActionResult> GetById(long id, [FromHeader(Name = "X-Student-Id")] string studentId)
+    {
+        EnsureValidStudentId(studentId);
+
+        var hold = await _holdService.GetByIdAsync(id);
+        if (hold.StudentId != studentId)
         {
-            return NotFound();
+            throw new ForbiddenException("This hold does not belong to this student.");
         }
 
         var classDto = await _classService.GetAsync(hold.ClassId);
         return Ok(ToDto(hold, classDto));
+    }
+
+    [HttpGet("me/holds")]
+    public async Task<IActionResult> GetMyHolds([FromHeader(Name = "X-Student-Id")] string studentId)
+    {
+        EnsureValidStudentId(studentId);
+
+        var holds = await _holdService.GetHoldsForStudentAsync(studentId);
+        var dtos = new List<AdmissionHoldDto>();
+        foreach (var hold in holds)
+        {
+            var classDto = await _classService.GetAsync(hold.ClassId);
+            dtos.Add(ToDto(hold, classDto));
+        }
+
+        return Ok(dtos);
     }
 
 
@@ -92,7 +117,7 @@ public class AdmissionHoldController : BaseApiController
     {
         if (string.IsNullOrEmpty(studentId) || !StudentIdPattern.IsMatch(studentId))
         {
-            throw new BadRequestException("Student ID must be exactly 8 digits.");
+            throw new BadRequestException("Student ID must be exactly 17 digits.");
         }
     }
 

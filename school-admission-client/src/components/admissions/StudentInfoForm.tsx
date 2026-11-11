@@ -33,7 +33,7 @@ const StudentInfoForm = ({ onSubmit }: StudentInfoFormProps) => {
                 <FormItem>
                   <FormLabel>Student ID</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="8-digit ID" maxLength={8} autoFocus />
+                    <Input {...field} placeholder="17-digit birth registration number" maxLength={17} autoFocus />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

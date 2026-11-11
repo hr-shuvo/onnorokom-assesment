@@ -38,6 +38,9 @@ const HoldStatusCard = ({
     return () => clearInterval(interval);
   }, [hold.status, hold.expiresAt]);
 
+  const msRemaining = hold.expiresAt ? new Date(hold.expiresAt).getTime() - now.getTime() : null;
+  const isExpiredLocally = hold.status === "Held" && msRemaining !== null && msRemaining <= 0;
+
   return (
     <Card>
       <CardHeader>
@@ -51,10 +54,10 @@ const HoldStatusCard = ({
           Status: <span className="font-medium">{hold.status}</span>
         </p>
 
-        {hold.status === "Held" && hold.expiresAt && (
+        {hold.status === "Held" && hold.expiresAt && !isExpiredLocally && (
           <>
             <p className="text-sm text-muted-foreground">
-              Confirm within {formatCountdown(new Date(hold.expiresAt).getTime() - now.getTime())}
+              Confirm within {formatCountdown(msRemaining ?? 0)}
             </p>
             <div className="flex gap-2">
               <Button onClick={onConfirm} disabled={isConfirming}>
@@ -65,6 +68,27 @@ const HoldStatusCard = ({
               </Button>
             </div>
           </>
+        )}
+
+        {hold.status === "Held" && isExpiredLocally && (
+          <p className="text-sm text-muted-foreground">
+            This hold just expired. Refreshing...
+          </p>
+        )}
+
+        {hold.status === "Expired" && (
+          <>
+            <p className="text-sm text-muted-foreground">
+              This hold expired before it was confirmed. Please apply again.
+            </p>
+            <Button variant="outline" onClick={onRefresh} disabled={isRefreshing}>
+              {isRefreshing ? "Refreshing..." : "Refresh status"}
+            </Button>
+          </>
+        )}
+
+        {hold.status === "Cancelled" && (
+          <p className="text-sm text-muted-foreground">This application was cancelled.</p>
         )}
 
         {hold.status === "Waiting" && (

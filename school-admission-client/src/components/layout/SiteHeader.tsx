@@ -12,6 +12,7 @@ import { useStudentStore } from "@/stores/student-store";
 
 const navItems = [
   { to: "/admissions", label: "Admissions" },
+  { to: "/admissions/my-applications", label: "My Applications" },
   { to: "/admin", label: "Admin" },
 ];
 

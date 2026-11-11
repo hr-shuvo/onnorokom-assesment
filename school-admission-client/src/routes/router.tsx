@@ -9,6 +9,7 @@ import AdmissionSettingsPage from "../pages/admin/AdmissionSettingsPage";
 import HomePage from "../pages/HomePage";
 import AdmissionStudentInfoPage from "../pages/AdmissionStudentInfoPage";
 import AdmissionApplicationPage from "../pages/AdmissionApplicationPage";
+import MyApplicationsPage from "../pages/MyApplicationsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
 
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
       {
         path: "admissions/application",
         element: <AdmissionApplicationPage />,
+      },
+      {
+        path: "admissions/my-applications",
+        element: <MyApplicationsPage />,
       },
       {
         path: "admin",

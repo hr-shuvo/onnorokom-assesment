@@ -10,6 +10,7 @@ public interface IAdmissionHoldService : IBaseService<AdmissionHold>
     Task<(int AvailableSeats, int ConfirmedSeats)> GetSeatSummaryAsync(long classId);
     Task<bool> HasActiveApplicationAsync(string studentId);
     Task<AdmissionHold> GetActiveHoldAsync(string studentId);
+    Task<IEnumerable<AdmissionHold>> GetHoldsForStudentAsync(string studentId);
     Task ExpireAndPromoteAsync(long classId);
     Task<AdmissionHold> ApplyAsync(long classId, string studentId, string studentName, string guardianPhone);
     Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName, string guardianPhone);
