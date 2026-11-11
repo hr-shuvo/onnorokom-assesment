@@ -33,8 +33,7 @@ export const holdService = {
   },
 
   async cancel(holdId: number) {
-    const { data } = await httpClient.post<AdmissionHold>(`${BASE_PATH}/holds/${holdId}/cancel`);
-    return data;
+    await httpClient.delete(`${BASE_PATH}/holds/${holdId}`);
   },
 
   async loadForClass(

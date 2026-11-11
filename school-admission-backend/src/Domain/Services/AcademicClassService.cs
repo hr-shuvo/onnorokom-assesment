@@ -57,6 +57,13 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         return ToDto(entity, availableSeats, confirmedSeats);
     }
 
+    public async Task<IReadOnlyDictionary<long, AcademicClass>> GetManyByIdsAsync(IEnumerable<long> ids)
+    {
+        var idList = ids.Distinct().ToList();
+        var entities = await Query().Where(x => idList.Contains(x.Id)).ToListAsync();
+        return entities.ToDictionary(x => x.Id);
+    }
+
     public async Task<AcademicClassDto> SaveAsync(AcademicClassVm model)
     {
         if (model.Id is not null and not 0)

@@ -30,7 +30,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         _configuration = configuration;
     }
 
-    private TimeSpan GetHoldDuration(AdmissionSettings admission)
+    private TimeSpan GetHoldDuration(int fallbackMinutes)
     {
         var raw = _configuration["HOLD_DURATION_SECONDS"];
         if (!string.IsNullOrWhiteSpace(raw) && int.TryParse(raw, out var seconds) && seconds > 0)
@@ -38,7 +38,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             return TimeSpan.FromSeconds(seconds);
         }
 
-        return TimeSpan.FromMinutes(admission.HoldMinutes);
+        return TimeSpan.FromMinutes(fallbackMinutes);
     }
 
     public async Task<int> GetAvailableSeatsAsync(long classId)
@@ -181,7 +181,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         foreach (var hold in promotable)
         {
             hold.Status = HoldStatus.Held;
-            hold.ExpiresAt = now.AddMinutes(admission.WaitlistHoldMinutes);
+            hold.ExpiresAt = now.Add(GetHoldDuration(admission.WaitlistHoldMinutes));
         }
 
         await UpdateRangeAsync(promotable);
@@ -230,7 +230,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             GuardianPhone = guardianPhone,
             ClassId = classId,
             Status = HoldStatus.Held,
-            ExpiresAt = DateTime.UtcNow.Add(GetHoldDuration(admission))
+            ExpiresAt = DateTime.UtcNow.Add(GetHoldDuration(admission.HoldMinutes))
         };
 
         await CreateAsync(hold);

@@ -20,6 +20,7 @@
 ## 4. Config - Admission
 
 - Initially we stored admission data in the database, but realized this was unnecessary since there is always only one admission config published at a time. We decided to use local file storage instead, e.g. `admission-config.json`.
+- The `config/` directory is mounted as a Docker named volume (`api_config`) so admin-edited settings survive `docker compose down && up --build`, not just a plain restart.
 
 ## 5. Hold duration
 

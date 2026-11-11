@@ -61,22 +61,13 @@ public class AdmissionHoldController : BaseApiController
         return Ok(ToDto(hold));
     }
 
-    [HttpPost("holds/{id:long}/cancel")]
-    public async Task<IActionResult> Cancel(long id, [FromHeader(Name = "X-Student-Id")] string studentId)
-    {
-        EnsureValidStudentId(studentId);
-
-        var hold = await _holdService.CancelAsync(id, studentId);
-        return Ok(ToDto(hold));
-    }
-
     [HttpDelete("holds/{id:long}")]
     public async Task<IActionResult> Delete(long id, [FromHeader(Name = "X-Student-Id")] string studentId)
     {
         EnsureValidStudentId(studentId);
 
-        var hold = await _holdService.CancelAsync(id, studentId);
-        return Ok(ToDto(hold));
+        await _holdService.CancelAsync(id, studentId);
+        return NoContent();
     }
 
     [HttpGet("holds/{id:long}")]
@@ -99,13 +90,13 @@ public class AdmissionHoldController : BaseApiController
     {
         EnsureValidStudentId(studentId);
 
-        var holds = await _holdService.GetHoldsForStudentAsync(studentId);
-        var dtos = new List<AdmissionHoldDto>();
-        foreach (var hold in holds)
+        var holds = (await _holdService.GetHoldsForStudentAsync(studentId)).ToList();
+        var classesById = await _classService.GetManyByIdsAsync(holds.Select(x => x.ClassId));
+        var dtos = holds.Select(hold =>
         {
-            var classDto = await _classService.GetAsync(hold.ClassId);
-            dtos.Add(ToDto(hold, classDto));
-        }
+            classesById.TryGetValue(hold.ClassId, out var academicClass);
+            return ToDto(hold, academicClass);
+        }).ToList();
 
         return Ok(dtos);
     }
@@ -122,6 +113,21 @@ public class AdmissionHoldController : BaseApiController
     }
 
     private static AdmissionHoldDto ToDto(AdmissionHold entity, AcademicClassDto academicClass = null) => new()
+    {
+        Id = entity.Id,
+        StudentId = entity.StudentId,
+        StudentName = entity.StudentName,
+        GuardianPhone = entity.GuardianPhone,
+        ClassId = entity.ClassId,
+        ClassName = academicClass?.Name,
+        ClassShift = academicClass?.Shift ?? default,
+        Status = entity.Status,
+        ExpiresAt = entity.ExpiresAt,
+        ConfirmedAt = entity.ConfirmedAt,
+        CreatedAt = entity.CreatedAt
+    };
+
+    private static AdmissionHoldDto ToDto(AdmissionHold entity, AcademicClass academicClass) => new()
     {
         Id = entity.Id,
         StudentId = entity.StudentId,
