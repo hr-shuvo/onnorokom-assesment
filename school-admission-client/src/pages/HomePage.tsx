@@ -84,7 +84,7 @@ const HomePage = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {isLoadingClasses && <p className="text-sm text-muted-foreground">Loading classes...</p>}
-                {!isLoadingClasses && classesError && (
+                {!isLoadingClasses && Boolean(classesError) && (
                   <p className="text-sm text-destructive">{getErrorMessage(classesError)}</p>
                 )}
                 {!isLoadingClasses && !classesError && classes.length === 0 && (

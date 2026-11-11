@@ -23,7 +23,7 @@ services:
     build: ./school-admission-backend
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Default: postgres://onnorokom:onnorokom@db:5432/admission-db
+      ConnectionStrings__Default: Host=db;Port=5432;Database=admission-db;Username=onnorokom;Password=onnorokom
 
     ports:
       - "8080:8080"
