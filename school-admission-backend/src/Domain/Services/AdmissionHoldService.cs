@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using System.Data;
+using Domain.Entities;
 using Domain.Enums;
 using Domain.Services.Interfaces;
 using Domain.Settings;
@@ -14,17 +15,14 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 {
     private readonly IBaseRepository<AcademicClass> _classRepository;
     private readonly ISettingsService<AdmissionSettings> _admissionSettings;
-    private readonly DbContext _dbContext;
 
     public AdmissionHoldService(
         IBaseRepository<AdmissionHold> repository,
         IBaseRepository<AcademicClass> classRepository,
-        ISettingsService<AdmissionSettings> admissionSettings,
-        DbContext dbContext) : base(repository)
+        ISettingsService<AdmissionSettings> admissionSettings) : base(repository)
     {
         _classRepository = classRepository;
         _admissionSettings = admissionSettings;
-        _dbContext = dbContext;
     }
 
     public async Task<int> GetAvailableSeatsAsync(long classId)
@@ -36,7 +34,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
     public async Task<(int AvailableSeats, int ConfirmedSeats)> GetSeatSummaryAsync(long classId)
     {
         var academicClass = await _classRepository.Get(classId)
-            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
+                            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
 
         var now = DateTime.UtcNow;
 
@@ -74,6 +72,24 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
     public async Task ExpireAndPromoteAsync(long classId)
     {
+        await ExpireHeldHoldsAsync(classId);
+
+        var academicClass = await _classRepository.Get(classId)
+                            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
+
+        var admission = await _admissionSettings.GetAsync();
+
+        if (!academicClass.IsActive || !IsAdmissionOpen(admission, DateTime.UtcNow))
+        {
+            await CancelWaitlistAsync(classId);
+            return;
+        }
+
+        await PromoteWaitlistAsync(classId, admission);
+    }
+
+    private async Task ExpireHeldHoldsAsync(long classId)
+    {
         var now = DateTime.UtcNow;
 
         var expiredHolds = await Query()
@@ -83,35 +99,35 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         foreach (var hold in expiredHolds)
         {
             hold.Status = HoldStatus.Expired;
-            await UpdateAsync(hold);
         }
 
-        var academicClass = await _classRepository.Get(classId)
-            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
+        await UpdateRangeAsync(expiredHolds);
+    }
 
-        var admission = await _admissionSettings.GetAsync();
+    private async Task CancelWaitlistAsync(long classId)
+    {
+        var waitingHolds = await Query()
+            .Where(x => x.ClassId == classId && x.Status == HoldStatus.Waiting)
+            .ToListAsync();
 
-        if (!academicClass.IsActive || !IsAdmissionOpen(admission, now))
+        foreach (var hold in waitingHolds)
         {
-            var waitingHolds = await Query()
-                .Where(x => x.ClassId == classId && x.Status == HoldStatus.Waiting)
-                .ToListAsync();
-
-            foreach (var hold in waitingHolds)
-            {
-                hold.Status = HoldStatus.Cancelled;
-                await UpdateAsync(hold);
-            }
-
-            return;
+            hold.Status = HoldStatus.Cancelled;
         }
 
+        await UpdateRangeAsync(waitingHolds);
+    }
+
+    private async Task PromoteWaitlistAsync(long classId, AdmissionSettings admission)
+    {
         var availableSeats = await GetAvailableSeatsAsync(classId);
 
         if (availableSeats <= 0)
         {
             return;
         }
+
+        var now = DateTime.UtcNow;
 
         var promotable = await Query()
             .Where(x => x.ClassId == classId && x.Status == HoldStatus.Waiting)
@@ -123,16 +139,31 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         {
             hold.Status = HoldStatus.Held;
             hold.ExpiresAt = now.AddMinutes(admission.WaitlistHoldMinutes);
-            await UpdateAsync(hold);
+        }
+
+        await UpdateRangeAsync(promotable);
+    }
+
+    public async Task<AdmissionHold> ApplyAsync(long classId, string studentId, string studentName,
+        string guardianPhone)
+    {
+        await using var transaction = await BeginTransactionAsync(IsolationLevel.Serializable);
+
+        try
+        {
+            var hold = await ApplyCoreAsync(classId, studentId, studentName, guardianPhone);
+            await transaction.CommitAsync();
+            return hold;
+        }
+        catch (PostgresException)
+        {
+            throw new ConflictException("Another request modified this class at the same time. Please try again.");
         }
     }
 
-    public async Task<AdmissionHold> ApplyAsync(long classId, string studentId, string studentName, string guardianPhone)
+    private async Task<AdmissionHold> ApplyCoreAsync(long classId, string studentId, string studentName,
+        string guardianPhone)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
-
-        await LockClassRowAsync(classId);
-
         var (_, admission) = await GetOpenClassOrThrowAsync(classId);
 
         await ExpireAndPromoteAsync(classId);
@@ -161,17 +192,29 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         await InsertHoldAsync(hold);
 
-        await transaction.CommitAsync();
-
         return hold;
     }
 
-    public async Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName, string guardianPhone)
+    public async Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName,
+        string guardianPhone)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        await using var transaction = await BeginTransactionAsync(IsolationLevel.Serializable);
 
-        await LockClassRowAsync(classId);
+        try
+        {
+            var hold = await JoinWaitlistCoreAsync(classId, studentId, studentName, guardianPhone);
+            await transaction.CommitAsync();
+            return hold;
+        }
+        catch (PostgresException)
+        {
+            throw new ConflictException("Another request modified this class at the same time. Please try again.");
+        }
+    }
 
+    private async Task<AdmissionHold> JoinWaitlistCoreAsync(long classId, string studentId, string studentName,
+        string guardianPhone)
+    {
         await GetOpenClassOrThrowAsync(classId);
 
         await ExpireAndPromoteAsync(classId);
@@ -193,16 +236,14 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         await InsertHoldAsync(hold);
 
-        await transaction.CommitAsync();
-
         return hold;
     }
 
     public async Task<AdmissionHold> ConfirmAsync(long holdId, string studentId)
     {
         var hold = await Query()
-            .FirstOrDefaultAsync(x => x.Id == holdId)
-            ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
+                       .FirstOrDefaultAsync(x => x.Id == holdId)
+                   ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
 
         if (hold.StudentId != studentId)
         {
@@ -214,19 +255,87 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             return hold;
         }
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        await using var transaction = await BeginTransactionAsync(IsolationLevel.Serializable);
 
-        await LockClassRowAsync(hold.ClassId);
+        try
+        {
+            var confirmed = await ConfirmCoreAsync(holdId, hold.ClassId);
+            await transaction.CommitAsync();
+            return confirmed;
+        }
+        catch (PostgresException)
+        {
+            throw new ConflictException("Another request modified this class at the same time. Please try again.");
+        }
+    }
 
-        await ExpireAndPromoteAsync(hold.ClassId);
+    public async Task<AdmissionHold> CancelAsync(long holdId, string studentId)
+    {
+        var hold = await Query()
+                       .FirstOrDefaultAsync(x => x.Id == holdId)
+                   ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
 
-        hold = await Query()
-            .FirstOrDefaultAsync(x => x.Id == holdId)
-            ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
+        if (hold.StudentId != studentId)
+        {
+            throw new ForbiddenException("This hold does not belong to this student.");
+        }
+
+        if (hold.Status is HoldStatus.Cancelled or HoldStatus.Expired)
+        {
+            return hold;
+        }
 
         if (hold.Status == HoldStatus.Confirmed)
         {
+            throw new ConflictException("This admission has already been confirmed and cannot be cancelled.");
+        }
+
+        await using var transaction = await BeginTransactionAsync(IsolationLevel.Serializable);
+
+        try
+        {
+            var cancelled = await CancelCoreAsync(holdId, hold.ClassId);
             await transaction.CommitAsync();
+            return cancelled;
+        }
+        catch (PostgresException)
+        {
+            throw new ConflictException("Another request modified this class at the same time. Please try again.");
+        }
+    }
+
+    #region Private Methods
+
+    private async Task<AdmissionHold> CancelCoreAsync(long holdId, long classId)
+    {
+        var hold = await Query()
+                       .FirstOrDefaultAsync(x => x.Id == holdId)
+                   ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
+
+        if (hold.Status is HoldStatus.Cancelled or HoldStatus.Expired or HoldStatus.Confirmed)
+        {
+            return hold;
+        }
+
+        hold.Status = HoldStatus.Cancelled;
+        await UpdateAsync(hold);
+
+        // Freed-up seat (if this was a Held hold) is picked up by the usual FCFS waitlist promotion.
+        await ExpireAndPromoteAsync(classId);
+
+        return hold;
+    }
+
+    private async Task<AdmissionHold> ConfirmCoreAsync(long holdId, long classId)
+    {
+        await ExpireAndPromoteAsync(classId);
+
+        var hold = await Query()
+                       .FirstOrDefaultAsync(x => x.Id == holdId)
+                   ?? throw new NotFoundException($"AdmissionHold with id {holdId} was not found.");
+
+        if (hold.Status == HoldStatus.Confirmed)
+        {
             return hold;
         }
 
@@ -240,17 +349,13 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         await UpdateAsync(hold);
 
-        await transaction.CommitAsync();
-
         return hold;
     }
-
-    
 
     private async Task<(AcademicClass Class, AdmissionSettings Admission)> GetOpenClassOrThrowAsync(long classId)
     {
         var academicClass = await _classRepository.Get(classId)
-            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
+                            ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
 
         var admission = await _admissionSettings.GetAsync();
 
@@ -274,13 +379,11 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         }
     }
 
-    private Task LockClassRowAsync(long classId) =>
-        _dbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"SELECT 1 FROM \"AcademicClass\" WHERE \"Id\" = {classId} FOR UPDATE");
-
     private static bool IsAdmissionOpen(AdmissionSettings admission, DateTime now) =>
         admission is { IsPublished: true } && admission.OpensAt <= now && admission.ClosesAt > now;
 
     private static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+
+    #endregion
 }

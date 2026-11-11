@@ -17,9 +17,19 @@ interface HoldStatusCardProps {
   isConfirming: boolean;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onCancel: () => void;
+  isCancelling: boolean;
 }
 
-const HoldStatusCard = ({ hold, onConfirm, isConfirming, onRefresh, isRefreshing }: HoldStatusCardProps) => {
+const HoldStatusCard = ({
+  hold,
+  onConfirm,
+  isConfirming,
+  onRefresh,
+  isRefreshing,
+  onCancel,
+  isCancelling,
+}: HoldStatusCardProps) => {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -46,9 +56,14 @@ const HoldStatusCard = ({ hold, onConfirm, isConfirming, onRefresh, isRefreshing
             <p className="text-sm text-muted-foreground">
               Confirm within {formatCountdown(new Date(hold.expiresAt).getTime() - now.getTime())}
             </p>
-            <Button onClick={onConfirm} disabled={isConfirming}>
-              {isConfirming ? "Confirming..." : "Confirm"}
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={onConfirm} disabled={isConfirming}>
+                {isConfirming ? "Confirming..." : "Confirm"}
+              </Button>
+              <Button variant="outline" onClick={onCancel} disabled={isCancelling}>
+                {isCancelling ? "Cancelling..." : "Cancel"}
+              </Button>
+            </div>
           </>
         )}
 
@@ -57,9 +72,14 @@ const HoldStatusCard = ({ hold, onConfirm, isConfirming, onRefresh, isRefreshing
             <p className="text-sm text-muted-foreground">
               You're on the waitlist. We'll hold a seat for you if one opens up.
             </p>
-            <Button variant="outline" onClick={onRefresh} disabled={isRefreshing}>
-              {isRefreshing ? "Refreshing..." : "Refresh status"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={onRefresh} disabled={isRefreshing}>
+                {isRefreshing ? "Refreshing..." : "Refresh status"}
+              </Button>
+              <Button variant="outline" onClick={onCancel} disabled={isCancelling}>
+                {isCancelling ? "Cancelling..." : "Cancel"}
+              </Button>
+            </div>
           </>
         )}
 

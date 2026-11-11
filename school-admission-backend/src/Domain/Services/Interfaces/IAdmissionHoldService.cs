@@ -13,4 +13,5 @@ public interface IAdmissionHoldService : IBaseService<AdmissionHold>
     Task<AdmissionHold> ApplyAsync(long classId, string studentId, string studentName, string guardianPhone);
     Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName, string guardianPhone);
     Task<AdmissionHold> ConfirmAsync(long holdId, string studentId);
+    Task<AdmissionHold> CancelAsync(long holdId, string studentId);
 }

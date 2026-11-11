@@ -31,4 +31,9 @@ export const holdService = {
     const { data } = await httpClient.post<AdmissionHold>(`${BASE_PATH}/holds/${holdId}/confirm`);
     return data;
   },
+
+  async cancel(holdId: number) {
+    const { data } = await httpClient.post<AdmissionHold>(`${BASE_PATH}/holds/${holdId}/cancel`);
+    return data;
+  },
 };

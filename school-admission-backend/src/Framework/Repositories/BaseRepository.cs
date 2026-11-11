@@ -1,6 +1,8 @@
-﻿using System.Linq.Expressions;
+﻿using System.Data;
+using System.Linq.Expressions;
 using Framework.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Framework.Repositories;
 
@@ -58,5 +60,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity>
     public Task SaveChangesAsync()
     {
         return _context.SaveChangesAsync();
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.Unspecified)
+    {
+        return _context.Database.BeginTransactionAsync(isolationLevel);
     }
 }

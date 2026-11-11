@@ -1,6 +1,8 @@
-﻿using Framework.Entities;
+﻿using System.Data;
+using Framework.Entities;
 using Framework.Exceptions;
 using Framework.Repositories;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Framework.Services;
 
@@ -25,6 +27,11 @@ public class BaseService<TEntity> : IBaseService<TEntity>
         return _repository.Query(withTracking);
     }
 
+    protected Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.Unspecified)
+    {
+        return _repository.BeginTransactionAsync(isolationLevel);
+    }
+
     public async Task<TEntity> GetByIdAsync(long id)
     {
         return await _repository.Get(id, withTracking: true)
@@ -45,6 +52,24 @@ public class BaseService<TEntity> : IBaseService<TEntity>
         _repository.Update(entity);
         await _repository.SaveChangesAsync();
         return entity;
+    }
+
+    protected async Task UpdateRangeAsync(IReadOnlyCollection<TEntity> entities)
+    {
+        if (entities.Count == 0)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+
+        foreach (var entity in entities)
+        {
+            entity.UpdatedAt = now;
+            _repository.Update(entity);
+        }
+
+        await _repository.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(long id)

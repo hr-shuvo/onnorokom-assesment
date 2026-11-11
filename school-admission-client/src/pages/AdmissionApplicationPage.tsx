@@ -27,6 +27,7 @@ const AdmissionApplicationPage = () => {
   const [submittingClassId, setSubmittingClassId] = useState<number | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (!applicant) {
@@ -49,6 +50,11 @@ const AdmissionApplicationPage = () => {
     };
     load();
   }, [applicant]);
+
+  const refreshClasses = async () => {
+    const result = await academicClassService.load(1, 100);
+    setClasses(result.items.filter((c) => c.isActive));
+  };
 
   const refreshHold = async () => {
     setIsRefreshing(true);
@@ -92,6 +98,21 @@ const AdmissionApplicationPage = () => {
     }
   };
 
+  const onCancel = async () => {
+    if (!hold) return;
+    setIsCancelling(true);
+    try {
+      await holdService.cancel(hold.id);
+      setHold(null);
+      await refreshClasses();
+      toast.success("Your application has been cancelled.");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   if (!applicant || isAdmissionLoading || isLoading) {
     return <Loading />;
   }
@@ -119,6 +140,8 @@ const AdmissionApplicationPage = () => {
                 isConfirming={isConfirming}
                 onRefresh={refreshHold}
                 isRefreshing={isRefreshing}
+                onCancel={onCancel}
+                isCancelling={isCancelling}
               />
             ) : (
               <ClassListCard classes={classes} onApply={onApply} submittingClassId={submittingClassId} />

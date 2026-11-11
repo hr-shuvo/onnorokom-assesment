@@ -51,6 +51,15 @@ public class AdmissionHoldController : BaseApiController
         return Ok(ToDto(hold));
     }
 
+    [HttpPost("holds/{id:long}/cancel")]
+    public async Task<IActionResult> Cancel(long id, [FromHeader(Name = "X-Student-Id")] string studentId)
+    {
+        EnsureValidStudentId(studentId);
+
+        var hold = await _holdService.CancelAsync(id, studentId);
+        return Ok(ToDto(hold));
+    }
+
     [HttpGet("holds/me")]
     public async Task<IActionResult> GetMyActiveHold([FromHeader(Name = "X-Student-Id")] string studentId)
     {
