@@ -10,6 +10,7 @@ public class AcademicClassDto
     public string Name { get; set; }
     public int Order { get; set; }
     public int TotalSeats { get; set; }
+    public int AvailableSeats { get; set; }
     public bool IsActive { get; set; }
     public Shift Shift { get; set; }
     public long? AdmissionId { get; set; }

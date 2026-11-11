@@ -45,12 +45,18 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
     public async Task<bool> HasActiveApplicationAsync(string studentId)
     {
+        return await GetActiveHoldAsync(studentId) != null;
+    }
+
+    public async Task<AdmissionHold> GetActiveHoldAsync(string studentId)
+    {
         return await Query()
             .Where(x => x.StudentId == studentId)
             .Where(x => x.Status == HoldStatus.Waiting
                         || x.Status == HoldStatus.Held
                         || x.Status == HoldStatus.Confirmed)
-            .AnyAsync();
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
     }
 
     public async Task ExpireAndPromoteAsync(long classId)
@@ -120,14 +126,14 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         if (await HasActiveApplicationAsync(studentId))
         {
-            throw new ConflictException("ALREADY_HAS_ACTIVE_APPLICATION");
+            throw new ConflictException("This student already has an active application.");
         }
 
         var availableSeats = await GetAvailableSeatsAsync(classId);
 
         if (availableSeats <= 0)
         {
-            throw new ConflictException("SEATS_FULL");
+            throw new ConflictException("This class has no seats remaining.");
         }
 
         var hold = new AdmissionHold
@@ -159,7 +165,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         if (await HasActiveApplicationAsync(studentId))
         {
-            throw new ConflictException("ALREADY_HAS_ACTIVE_APPLICATION");
+            throw new ConflictException("This student already has an active application.");
         }
 
         var hold = new AdmissionHold
@@ -213,7 +219,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         if (hold.Status != HoldStatus.Held)
         {
-            throw new ConflictException("HOLD_EXPIRED");
+            throw new ConflictException("This hold has expired.");
         }
 
         hold.Status = HoldStatus.Confirmed;
@@ -237,7 +243,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         if (!academicClass.IsActive || !IsAdmissionOpen(admission, DateTime.UtcNow))
         {
-            throw new ConflictException("CLASS_NOT_OPEN");
+            throw new ConflictException("This class is not currently open for admission.");
         }
 
         return (academicClass, admission);
@@ -251,7 +257,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            throw new ConflictException("ALREADY_HAS_ACTIVE_APPLICATION");
+            throw new ConflictException("This student already has an active application.");
         }
     }
 

@@ -9,15 +9,17 @@ using Microsoft.AspNetCore.Mvc;
 namespace Api.Controllers;
 
 [Route("api")]
-public class HoldsController : BaseApiController
+public class AdmissionHoldController : BaseApiController
 {
     private static readonly Regex StudentIdPattern = new(@"^\d{8}$", RegexOptions.Compiled);
 
     private readonly IAdmissionHoldService _holdService;
+    private readonly IAcademicClassService _classService;
 
-    public HoldsController(IAdmissionHoldService holdService)
+    public AdmissionHoldController(IAdmissionHoldService holdService, IAcademicClassService classService)
     {
         _holdService = holdService;
+        _classService = classService;
     }
 
     [HttpPost("classes/{classId:long}/holds")]
@@ -49,6 +51,21 @@ public class HoldsController : BaseApiController
         return Ok(ToDto(hold));
     }
 
+    [HttpGet("holds/me")]
+    public async Task<IActionResult> GetMyActiveHold([FromHeader(Name = "X-Student-Id")] string studentId)
+    {
+        EnsureValidStudentId(studentId);
+
+        var hold = await _holdService.GetActiveHoldAsync(studentId);
+        if (hold == null)
+        {
+            return NotFound();
+        }
+
+        var classDto = await _classService.GetAsync(hold.ClassId);
+        return Ok(ToDto(hold, classDto));
+    }
+
 
     #region Private Methods
 
@@ -56,17 +73,19 @@ public class HoldsController : BaseApiController
     {
         if (string.IsNullOrEmpty(studentId) || !StudentIdPattern.IsMatch(studentId))
         {
-            throw new BadRequestException("INVALID_STUDENT_ID");
+            throw new BadRequestException("Student ID must be exactly 8 digits.");
         }
     }
 
-    private static AdmissionHoldDto ToDto(AdmissionHold entity) => new()
+    private static AdmissionHoldDto ToDto(AdmissionHold entity, AcademicClassDto academicClass = null) => new()
     {
         Id = entity.Id,
         StudentId = entity.StudentId,
         StudentName = entity.StudentName,
         GuardianPhone = entity.GuardianPhone,
         ClassId = entity.ClassId,
+        ClassName = academicClass?.Name,
+        ClassShift = academicClass?.Shift ?? default,
         Status = entity.Status,
         ExpiresAt = entity.ExpiresAt,
         ConfirmedAt = entity.ConfirmedAt,

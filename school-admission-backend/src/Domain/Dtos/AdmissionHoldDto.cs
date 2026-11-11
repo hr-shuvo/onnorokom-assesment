@@ -10,6 +10,8 @@ public class AdmissionHoldDto
     public string StudentName { get; set; }
     public string GuardianPhone { get; set; }
     public long ClassId { get; set; }
+    public string ClassName { get; set; }
+    public Shift ClassShift { get; set; }
     public HoldStatus Status { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public DateTime? ConfirmedAt { get; set; }

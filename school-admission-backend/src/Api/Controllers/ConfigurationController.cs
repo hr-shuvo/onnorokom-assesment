@@ -1,6 +1,7 @@
 using Domain.Services.Interfaces;
 using Domain.Settings;
 using Framework.Common.Controllers;
+using Framework.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -25,6 +26,11 @@ public class ConfigurationController : BaseApiController
     [HttpPost("admission")]
     public async Task<IActionResult> SaveAdmission(AdmissionSettings model)
     {
+        if (model.OpensAt >= model.ClosesAt)
+        {
+            throw new BadRequestException("Admission opening date must be before the closing date.");
+        }
+
         var current = await _admissionSettings.GetAsync();
 
         current.Title = model.Title;

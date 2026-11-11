@@ -8,8 +8,11 @@ namespace Domain.Services;
 
 public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassService
 {
-    public AcademicClassService(IBaseRepository<AcademicClass> baseRepository) : base(baseRepository)
+    private readonly IAdmissionHoldService _holdService;
+
+    public AcademicClassService(IBaseRepository<AcademicClass> baseRepository, IAdmissionHoldService holdService) : base(baseRepository)
     {
+        _holdService = holdService;
     }
 
     public async Task<(int Count, IEnumerable<AcademicClassDto> Items)> LoadAsync(AcademicClassQueryParams queryParams)
@@ -30,18 +33,26 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         {
             query = query.Where(x => x.Shift == queryParams.Shift.Value);
         }
-        
+
         query = query.OrderBy(x => x.Order).ThenBy(x => x.Shift).ThenBy(x => x.TotalSeats);
 
         var (count, items) = await LoadAsync(query, queryParams.PageNumber, queryParams.PageSize);
 
-        return (count, items.Select(ToDto));
+        var dtos = new List<AcademicClassDto>();
+        foreach (var item in items)
+        {
+            var availableSeats = await _holdService.GetAvailableSeatsAsync(item.Id);
+            dtos.Add(ToDto(item, availableSeats));
+        }
+
+        return (count, dtos);
     }
 
     public async Task<AcademicClassDto> GetAsync(long id)
     {
         var entity = await GetByIdAsync(id);
-        return ToDto(entity);
+        var availableSeats = await _holdService.GetAvailableSeatsAsync(id);
+        return ToDto(entity, availableSeats);
     }
 
     public async Task<AcademicClassDto> SaveAsync(AcademicClassVm model)
@@ -55,7 +66,8 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         entity.Shift = model.Shift;
 
         entity = model.Id.HasValue ? await UpdateAsync(entity) : await CreateAsync(entity);
-        return ToDto(entity);
+        var availableSeats = await _holdService.GetAvailableSeatsAsync(entity.Id);
+        return ToDto(entity, availableSeats);
     }
 
     public async Task<AcademicClassDto> ToggleStatusAsync(long id)
@@ -63,15 +75,17 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         var entity = await GetByIdAsync(id);
         entity.IsActive = !entity.IsActive;
         entity = await UpdateAsync(entity);
-        return ToDto(entity);
+        var availableSeats = await _holdService.GetAvailableSeatsAsync(entity.Id);
+        return ToDto(entity, availableSeats);
     }
 
-    private static AcademicClassDto ToDto(AcademicClass entity) => new()
+    private static AcademicClassDto ToDto(AcademicClass entity, int availableSeats) => new()
     {
         Id = entity.Id,
         Name = entity.Name,
         Order = entity.Order,
         TotalSeats = entity.TotalSeats,
+        AvailableSeats = availableSeats,
         IsActive = entity.IsActive,
         Shift = entity.Shift,
         CreatedAt = entity.CreatedAt,
