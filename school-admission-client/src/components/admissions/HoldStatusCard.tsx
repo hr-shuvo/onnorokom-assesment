@@ -61,7 +61,7 @@ const HoldStatusCard = ({
             </p>
             <div className="flex gap-2">
               <Button onClick={onConfirm} disabled={isConfirming}>
-                {isConfirming ? "Confirming..." : "Confirm"}
+                {isConfirming ? "Confirming..." : "Pay and Confirm"}
               </Button>
               <Button variant="outline" onClick={onCancel} disabled={isCancelling}>
                 {isCancelling ? "Cancelling..." : "Cancel"}
