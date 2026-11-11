@@ -19,7 +19,7 @@ import type { AdmissionHold } from "@/types/hold";
 const AdmissionApplicationPage = () => {
   const navigate = useNavigate();
   const { admission, isLoading: isAdmissionLoading, isOpen, closedMessage } = useAdmission();
-  const { applicant, clearApplicant } = useStudentStore();
+  const { applicant } = useStudentStore();
 
   const [classes, setClasses] = useState<AcademicClass[]>([]);
   const [hold, setHold] = useState<AdmissionHold | null>(null);
@@ -110,7 +110,7 @@ const AdmissionApplicationPage = () => {
 
         {isOpen && (
           <>
-            <ApplicantDetailsCard applicant={applicant} onChange={clearApplicant} />
+            <ApplicantDetailsCard applicant={applicant} />
 
             {hold ? (
               <HoldStatusCard
