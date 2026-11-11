@@ -128,7 +128,7 @@ namespace Framework.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("ExpiresAt")
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("GuardianPhone")
@@ -149,7 +149,6 @@ namespace Framework.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("StudentName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -158,8 +157,7 @@ namespace Framework.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StudentId")
-                        .IsUnique();
+                    b.HasIndex("StudentId");
 
                     b.ToTable("AdmissionHold");
                 });

@@ -12,6 +12,7 @@ public class AcademicClassDto
     public int TotalSeats { get; set; }
     public bool IsActive { get; set; }
     public Shift Shift { get; set; }
+    public long? AdmissionId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }

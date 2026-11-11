@@ -14,8 +14,8 @@ public class AdmissionHold: BaseEntity
     public long ClassId { get; set; }
     
     public HoldStatus Status { get; set; }
-    
-    public DateTime ExpiresAt { get; set; }
+
+    public DateTime? ExpiresAt { get; set; }
     
     public DateTime? ConfirmedAt { get; set; }
     

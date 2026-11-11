@@ -8,4 +8,7 @@ public interface IAdmissionHoldService : IBaseService<AdmissionHold>
     Task<int> GetAvailableSeatsAsync(long classId);
     Task<bool> HasActiveApplicationAsync(string studentId);
     Task ExpireAndPromoteAsync(long classId);
+    Task<AdmissionHold> ApplyAsync(long classId, string studentId, string studentName, string guardianPhone);
+    Task<AdmissionHold> JoinWaitlistAsync(long classId, string studentId, string studentName, string guardianPhone);
+    Task<AdmissionHold> ConfirmAsync(long holdId, string studentId);
 }

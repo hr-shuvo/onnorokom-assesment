@@ -30,6 +30,8 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         {
             query = query.Where(x => x.Shift == queryParams.Shift.Value);
         }
+        
+        query = query.OrderBy(x => x.Order).ThenBy(x => x.Shift).ThenBy(x => x.TotalSeats);
 
         var (count, items) = await LoadAsync(query, queryParams.PageNumber, queryParams.PageSize);
 
