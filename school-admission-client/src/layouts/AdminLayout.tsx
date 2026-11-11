@@ -15,9 +15,15 @@ import {
   SidebarTrigger,
 } from "../components/ui/sidebar";
 
-const navItems = [
-  { to: "/admin/admissions", label: "Admissions", icon: ClipboardList },
-  { to: "/admin/classes", label: "Classes", icon: LayoutGrid },
+const navGroups = [
+  {
+    label: "Management",
+    items: [{ to: "/admin/classes", label: "Classes", icon: LayoutGrid }],
+  },
+  {
+    label: "Settings",
+    items: [{ to: "/admin/admission", label: "Admission", icon: ClipboardList }],
+  },
 ];
 
 export default function AdminLayout() {
@@ -35,25 +41,27 @@ export default function AdminLayout() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Management</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {navItems.map((item) => (
-                  <SidebarMenuItem key={item.to}>
-                    <SidebarMenuButton
-                      isActive={location.pathname.startsWith(item.to)}
-                      tooltip={item.label}
-                      render={<NavLink to={item.to} />}
-                    >
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {navGroups.map((group) => (
+            <SidebarGroup key={group.label}>
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton
+                        isActive={location.pathname.startsWith(item.to)}
+                        tooltip={item.label}
+                        render={<NavLink to={item.to} />}
+                      >
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          ))}
         </SidebarContent>
       </Sidebar>
 

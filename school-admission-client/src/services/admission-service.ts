@@ -1,29 +1,22 @@
 import { httpClient } from "../lib/http-client";
-import type { Admission, AdmissionInput, PagedResult } from "../types/admission";
+import type { AdmissionSettings, AdmissionSettingsInput } from "../types/admission";
 
-const BASE_PATH = "/api/admissions";
+const BASE_PATH = "/api/configuration/admission";
 
 export const admissionService = {
-  async load(pageNumber?: number, pageSize?: number, search?: string, status?: string) {
-    const { data } = await httpClient.get<PagedResult<Admission>>(BASE_PATH, {
-      params: { pageNumber, pageSize, search, status },
-    });
+  async get() {
+    const { data } = await httpClient.get<AdmissionSettings>(BASE_PATH);
     return data;
   },
 
-  async get(id: number) {
-    const { data } = await httpClient.get<Admission>(`${BASE_PATH}/${id}`);
+  async save(input: AdmissionSettingsInput) {
+    const { data } = await httpClient.post<AdmissionSettings>(BASE_PATH, input);
     return data;
   },
 
-  async save(input: AdmissionInput & { id?: number }) {
-    const { data } = await httpClient.post<Admission>(`${BASE_PATH}/save`, input);
-    return data;
-  },
-
-  async changeStatus(id: number, status: string) {
-    const { data } = await httpClient.patch<Admission>(`${BASE_PATH}/${id}/status`, null, {
-      params: { status },
+  async setPublished(isPublished: boolean) {
+    const { data } = await httpClient.patch<AdmissionSettings>(`${BASE_PATH}/status`, null, {
+      params: { isPublished },
     });
     return data;
   },

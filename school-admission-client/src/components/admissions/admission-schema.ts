@@ -7,7 +7,9 @@ export const admissionSchema = z
     opensAt: z.date("Opens at is required."),
     closesAt: z.date("Closes at is required."),
     holdMinutes: z.number("Hold minutes is required.").min(1, "Hold minutes must be at least 1."),
-    status: z.string().min(1, "Status is required."),
+    waitlistHoldMinutes: z
+      .number("Waitlist hold minutes is required.")
+      .min(1, "Waitlist hold minutes must be at least 1."),
   })
   .refine((values) => values.closesAt > values.opensAt, {
     message: "Closes at must be after opens at.",

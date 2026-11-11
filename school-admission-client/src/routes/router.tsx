@@ -4,9 +4,7 @@ import HomeLayout from "../layouts/HomeLayout";
 import ClassesPage from "../pages/admin/ClassesPage";
 import ClassCreatePage from "../pages/admin/ClassCreatePage";
 import ClassEditPage from "../pages/admin/ClassEditPage";
-import AdmissionsPage from "../pages/admin/AdmissionsPage";
-import AdmissionCreatePage from "../pages/admin/AdmissionCreatePage";
-import AdmissionEditPage from "../pages/admin/AdmissionEditPage";
+import AdmissionSettingsPage from "../pages/admin/AdmissionSettingsPage";
 import HomePage from "../pages/HomePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
@@ -42,16 +40,8 @@ export const router = createBrowserRouter([
             element: <ClassEditPage />,
           },
           {
-            path: "admissions",
-            element: <AdmissionsPage />,
-          },
-          {
-            path: "admissions/new",
-            element: <AdmissionCreatePage />,
-          },
-          {
-            path: "admissions/:id/edit",
-            element: <AdmissionEditPage />,
+            path: "admission",
+            element: <AdmissionSettingsPage />,
           },
         ],
       },

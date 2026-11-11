@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays } from "date-fns";
@@ -7,7 +6,7 @@ import { toast } from "sonner";
 
 import { getErrorMessage } from "../../lib/http-client";
 import { admissionService } from "../../services/admission-service";
-import type { Admission } from "../../types/admission";
+import type { AdmissionSettings } from "../../types/admission";
 import { admissionSchema, type AdmissionFormValues } from "../../components/admissions/admission-schema";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -15,24 +14,12 @@ import { Textarea } from "../../components/ui/textarea";
 import { DatePicker } from "../../components/ui/date-picker";
 import { Loading } from "../../components/ui/loading";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
-import { useAdmissionStatuses } from "../../hooks/use-admission-statuses";
 
-const AdmissionEditPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  const [admission, setAdmission] = useState<Admission | null>(null);
+const AdmissionSettingsPage = () => {
+  const [admission, setAdmission] = useState<AdmissionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const { statuses } = useAdmissionStatuses();
-  const publishableStatuses = statuses.filter((status) => status.name !== "Archived");
+  const [isTogglingPublish, setIsTogglingPublish] = useState(false);
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionSchema),
@@ -40,14 +27,14 @@ const AdmissionEditPage = () => {
   const opensAt = useWatch({ control: form.control, name: "opensAt" });
 
   useEffect(() => {
-    const loadAdmission = async () => {
+    const load = async () => {
       setIsLoading(true);
-      const result = await admissionService.get(Number(id));
+      const result = await admissionService.get();
       setAdmission(result);
       setIsLoading(false);
     };
-    loadAdmission();
-  }, [id]);
+    load();
+  }, []);
 
   useEffect(() => {
     if (admission) {
@@ -57,7 +44,7 @@ const AdmissionEditPage = () => {
         opensAt: new Date(admission.opensAt),
         closesAt: new Date(admission.closesAt),
         holdMinutes: admission.holdMinutes,
-        status: admission.status === "Archived" ? "Draft" : admission.status,
+        waitlistHoldMinutes: admission.waitlistHoldMinutes,
       });
     }
   }, [admission, form]);
@@ -69,23 +56,57 @@ const AdmissionEditPage = () => {
   const onSubmit = async (values: AdmissionFormValues) => {
     setIsSaving(true);
     try {
-      await admissionService.save({
+      const result = await admissionService.save({
         ...values,
-        id: Number(id),
         opensAt: values.opensAt.toISOString(),
         closesAt: values.closesAt.toISOString(),
       });
-      toast.success("Admission updated.");
-      navigate("/admin/admissions");
+      setAdmission(result);
+      toast.success("Admission settings saved.");
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
       setIsSaving(false);
+    }
+  };
+
+  const togglePublished = async () => {
+    if (!admission) return;
+
+    setIsTogglingPublish(true);
+    try {
+      const result = await admissionService.setPublished(!admission.isPublished);
+      setAdmission(result);
+      toast.success(result.isPublished ? "Admission published." : "Admission unpublished.");
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setIsTogglingPublish(false);
     }
   };
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Edit Admission</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Admission Settings</h1>
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+              admission?.isPublished ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+            }`}
+          >
+            {admission?.isPublished ? "Published" : "Unpublished"}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={togglePublished}
+            disabled={isTogglingPublish}
+          >
+            {admission?.isPublished ? "Unpublish" : "Publish"}
+          </Button>
+        </div>
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-md space-y-4">
@@ -125,7 +146,7 @@ const AdmissionEditPage = () => {
                 <FormItem>
                   <FormLabel>Opens At</FormLabel>
                   <FormControl>
-                    <DatePicker value={field.value} onChange={field.onChange} minDate={new Date()} />
+                    <DatePicker value={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -150,55 +171,47 @@ const AdmissionEditPage = () => {
             />
           </div>
 
-          <FormField
-            name="holdMinutes"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hold Minutes</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="number"
-                    onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="status"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select value={field.value} onValueChange={field.onChange}>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              name="holdMinutes"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hold Minutes</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a status" />
-                    </SelectTrigger>
+                    <Input
+                      {...field}
+                      type="number"
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {publishableStatuses.map((option) => (
-                      <SelectItem key={option.value} value={option.name}>
-                        {option.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="waitlistHoldMinutes"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Waitlist Hold Minutes</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="number"
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <div className="flex gap-2 pt-2">
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving..." : "Save"}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => navigate("/admin/admissions")}>
-              Cancel
             </Button>
           </div>
         </form>
@@ -207,4 +220,4 @@ const AdmissionEditPage = () => {
   );
 };
 
-export default AdmissionEditPage;
+export default AdmissionSettingsPage;
