@@ -8,6 +8,7 @@ import { getErrorMessage } from "../../lib/http-client";
 import { admissionService } from "../../services/admission-service";
 import type { AdmissionSettings } from "../../types/admission";
 import { admissionSchema, type AdmissionFormValues } from "../../components/admissions/admission-schema";
+import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
@@ -98,135 +99,137 @@ const AdmissionSettingsPage = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Admission Settings</h1>
-        <div className="flex items-center gap-2">
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              admission?.isPublished ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-            }`}
-          >
-            {admission?.isPublished ? "Published" : "Unpublished"}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={togglePublished}
-            disabled={isTogglingPublish}
-          >
-            {admission?.isPublished ? "Unpublish" : "Publish"}
-          </Button>
-        </div>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-md space-y-4">
-          <FormField
-            name="title"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="e.g. Admission 2026" autoFocus />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="description"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea {...field} placeholder="Optional description" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              name="opensAt"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Opens At</FormLabel>
-                  <FormControl>
-                    <DatePicker value={field.value} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="closesAt"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Closes At</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      value={field.value}
-                      onChange={field.onChange}
-                      minDate={opensAt ? addDays(opensAt, 1) : undefined}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              name="holdMinutes"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hold Minutes</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              name="waitlistHoldMinutes"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Waitlist Hold Minutes</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save"}
+      <Card className="gap-4 px-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Admission Settings</h1>
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                admission?.isPublished ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {admission?.isPublished ? "Published" : "Unpublished"}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={togglePublished}
+              disabled={isTogglingPublish}
+            >
+              {admission?.isPublished ? "Unpublish" : "Publish"}
             </Button>
           </div>
-        </form>
-      </Form>
+        </div>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-md space-y-4">
+            <FormField
+              name="title"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g. Admission 2026" autoFocus />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              name="description"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="Optional description" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                name="opensAt"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Opens At</FormLabel>
+                    <FormControl>
+                      <DatePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="closesAt"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Closes At</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        minDate={opensAt ? addDays(opensAt, 1) : undefined}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                name="holdMinutes"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hold Minutes</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                name="waitlistHoldMinutes"
+                control={form.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Waitlist Hold Minutes</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </Card>
     </div>
   );
 };
