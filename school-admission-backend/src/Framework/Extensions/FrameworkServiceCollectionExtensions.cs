@@ -26,4 +26,11 @@ public static class FrameworkServiceCollectionExtensions
 
         return services;
     }
+
+    public static async Task ApplyMigrationsAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await dbContext.Database.MigrateAsync();
+    }
 }

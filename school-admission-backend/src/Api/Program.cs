@@ -15,6 +15,8 @@ builder.Services.AddFrameworkServices(builder.Configuration, builder.Environment
 
 var app = builder.Build();
 
+await app.ApplyMigrationsAsync();
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
