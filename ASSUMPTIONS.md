@@ -20,3 +20,11 @@
 ## 4. Config - Admission
 
 - Initially we stored admission data in the database, but realized this was unnecessary since there is always only one admission config published at a time. We decided to use local file storage instead, e.g. `admission-config.json`.
+
+## 5. Hold duration
+
+- `HOLD_DURATION_SECONDS` env var is used if set (default 600 in docker-compose), otherwise falls back to the JSON admin setting `HoldMinutes`. This way it matches the spec but an admin can still tune it from the UI.
+
+## 6. Bonus items not attempted
+
+- Did not attempt running two backend processes on different ports sharing one DB, ran out of time.

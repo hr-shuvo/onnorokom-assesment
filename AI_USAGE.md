@@ -18,13 +18,9 @@ Both were used as development assistants throughout the project.
 
 ## 3. AI Limitations and Corrections
 
-AI suggestions were not always suitable for the project's requirements.
-
-| Issue | Correction |
-|---|---|
-| Suggested overcomplicated solutions. | Simplified implementations and avoided unnecessary complexity. |
-| Misunderstood requirements. | Clarified requirements and provided additional context. |
-| Suggested unsuitable changes. | Reviewed, modified, or rejected suggestions based on the existing codebase. |
+- First pass at the concurrency handling for seat holds didn't account for Postgres throwing serialization errors under real concurrent load. Fixed by wrapping the hold/confirm flow in `Serializable` transactions and returning a `409 Conflict` instead of crashing. Caught this by writing the concurrency test and seeing it fail.
+- AI suggested adding `BuggyController` to test error handling, but one of its endpoints threw a real unhandled 500, which goes against the spec. Noticed it on a final pass and just deleted the controller.
+- Hold duration was only reading from the JSON admin settings file at first, missed that the spec wants a `HOLD_DURATION_SECONDS` env var specifically. Added that as the primary source, JSON setting as fallback.
 
 ## 4. Verification
 

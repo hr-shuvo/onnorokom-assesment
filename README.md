@@ -109,6 +109,17 @@ Port mappings use the format `HOST:CONTAINER`:
 - `5432:5432` — PostgreSQL
 
 
+## Running tests
+
+Backend tests are in `school-admission-backend/tests/Api.Tests`. Docker needs to be running since the tests use Testcontainers to spin up a real Postgres.
+
+```bash
+cd school-admission-backend
+dotnet test
+```
+
+Covers the hold/confirm happy path, invalid input returning 4xx, and a concurrency test for seat holds.
+
 ## Run without Docker (optional)
 
 **Database:** run PostgreSQL locally or start only the db container: `docker compose up db`
