@@ -33,3 +33,8 @@ app.MapControllers();
 app.MapGet("/", () => "API is running...");
 
 app.Run();
+
+
+public abstract partial class Program
+{
+}

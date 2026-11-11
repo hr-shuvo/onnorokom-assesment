@@ -8,6 +8,7 @@ import AdmissionClosedCard from "@/components/admissions/AdmissionClosedCard";
 import { academicClassService } from "@/services/academic-class-service";
 import { useAdmission } from "@/hooks/use-admission";
 import { getErrorMessage } from "@/lib/http-client";
+import { formatDateTime } from "@/lib/date";
 import type { AcademicClass } from "@/types/academic-class";
 
 const seatLabel = (c: AcademicClass) => {
@@ -68,7 +69,7 @@ const HomePage = () => {
           {admission?.description && <p className="text-muted-foreground">{admission.description}</p>}
           {admission && isOpen && (
             <p className="text-sm text-muted-foreground">
-              Admissions close on {new Date(admission.closesAt).toLocaleString()}.
+              Admissions close on {formatDateTime(admission.closesAt)}.
             </p>
           )}
         </div>

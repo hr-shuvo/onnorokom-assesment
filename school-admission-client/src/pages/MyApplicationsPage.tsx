@@ -4,8 +4,9 @@ import { useNavigate } from "react-router";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loading } from "@/components/ui/loading";
-import { STATUS_STYLES, formatDate } from "@/components/holds/columns";
+import { STATUS_STYLES } from "@/components/holds/columns";
 import { getErrorMessage } from "@/lib/http-client";
+import { formatDateTime } from "@/lib/date";
 import { holdService } from "@/services/hold-service";
 import { useStudentStore } from "@/stores/student-store";
 import type { AdmissionHold } from "@/types/hold";
@@ -89,9 +90,9 @@ const MyApplicationsPage = () => {
                   </span>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm text-muted-foreground">
-                  <p>Applied on {formatDate(hold.createdAt)}</p>
-                  {hold.status === "Held" && <p>Expires at {formatDate(hold.expiresAt)}</p>}
-                  {hold.status === "Confirmed" && <p>Confirmed at {formatDate(hold.confirmedAt)}</p>}
+                  <p>Applied on {formatDateTime(hold.createdAt)}</p>
+                  {hold.status === "Held" && <p>Expires at {formatDateTime(hold.expiresAt)}</p>}
+                  {hold.status === "Confirmed" && <p>Confirmed at {formatDateTime(hold.confirmedAt)}</p>}
                 </CardContent>
               </Card>
             ))}

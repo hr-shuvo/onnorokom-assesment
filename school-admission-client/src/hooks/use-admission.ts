@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { admissionService } from "../services/admission-service";
+import { formatDateTime } from "../lib/date";
 import type { AdmissionSettings } from "../types/admission";
 
 const isAdmissionOpen = (admission: AdmissionSettings | null): boolean => {
@@ -14,9 +15,9 @@ const closedMessage = (admission: AdmissionSettings | null): string => {
   }
   const now = new Date();
   if (new Date(admission.opensAt) > now) {
-    return `Admissions open on ${new Date(admission.opensAt).toLocaleString()}.`;
+    return `Admissions open on ${formatDateTime(admission.opensAt)}.`;
   }
-  return `Admissions closed on ${new Date(admission.closesAt).toLocaleString()}.`;
+  return `Admissions closed on ${formatDateTime(admission.closesAt)}.`;
 };
 
 export const useAdmission = () => {

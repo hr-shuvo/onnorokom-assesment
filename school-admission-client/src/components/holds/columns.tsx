@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 
+import { formatDateTime } from "../../lib/date";
 import type { AdmissionHold, HoldStatus } from "../../types/hold";
 
 export const STATUS_STYLES: Record<HoldStatus, string> = {
@@ -9,10 +10,6 @@ export const STATUS_STYLES: Record<HoldStatus, string> = {
   Expired: "bg-destructive/10 text-destructive",
   Cancelled: "bg-muted text-muted-foreground",
 };
-
-export function formatDate(value: string | null) {
-  return value ? new Date(value).toLocaleString() : "—";
-}
 
 export function getAdmissionHoldColumns(): ColumnDef<AdmissionHold>[] {
   return [
@@ -45,17 +42,17 @@ export function getAdmissionHoldColumns(): ColumnDef<AdmissionHold>[] {
     {
       accessorKey: "createdAt",
       header: "Applied On",
-      cell: ({ row }) => formatDate(row.original.createdAt),
+      cell: ({ row }) => formatDateTime(row.original.createdAt),
     },
     {
       accessorKey: "expiresAt",
       header: "Expires At",
-      cell: ({ row }) => formatDate(row.original.expiresAt),
+      cell: ({ row }) => formatDateTime(row.original.expiresAt),
     },
     {
       accessorKey: "confirmedAt",
       header: "Confirmed At",
-      cell: ({ row }) => formatDate(row.original.confirmedAt),
+      cell: ({ row }) => formatDateTime(row.original.confirmedAt),
     },
   ];
 }
