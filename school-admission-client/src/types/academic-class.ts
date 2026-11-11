@@ -6,6 +6,7 @@ export interface AcademicClass {
   order: number;
   totalSeats: number;
   availableSeats: number;
+  confirmedSeats: number;
   isActive: boolean;
   shift: Shift;
   createdAt: string;

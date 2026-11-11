@@ -29,18 +29,31 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
     public async Task<int> GetAvailableSeatsAsync(long classId)
     {
+        var (availableSeats, _) = await GetSeatSummaryAsync(classId);
+        return availableSeats;
+    }
+
+    public async Task<(int AvailableSeats, int ConfirmedSeats)> GetSeatSummaryAsync(long classId)
+    {
         var academicClass = await _classRepository.Get(classId)
             ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
 
         var now = DateTime.UtcNow;
 
-        var takenSeats = await Query()
+        var seatCounts = await Query()
             .Where(x => x.ClassId == classId)
-            .Where(x => x.Status == HoldStatus.Confirmed
-                        || (x.Status == HoldStatus.Held && x.ExpiresAt > now))
-            .CountAsync();
+            .GroupBy(x => x.ClassId)
+            .Select(g => new
+            {
+                ConfirmedSeats = g.Count(x => x.Status == HoldStatus.Confirmed),
+                HeldSeats = g.Count(x => x.Status == HoldStatus.Held && x.ExpiresAt > now)
+            })
+            .FirstOrDefaultAsync();
 
-        return academicClass.TotalSeats - takenSeats;
+        var confirmedSeats = seatCounts?.ConfirmedSeats ?? 0;
+        var heldSeats = seatCounts?.HeldSeats ?? 0;
+
+        return (academicClass.TotalSeats - confirmedSeats - heldSeats, confirmedSeats);
     }
 
     public async Task<bool> HasActiveApplicationAsync(string studentId)

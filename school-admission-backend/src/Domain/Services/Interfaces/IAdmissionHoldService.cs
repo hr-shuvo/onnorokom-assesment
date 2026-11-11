@@ -6,6 +6,7 @@ namespace Domain.Services.Interfaces;
 public interface IAdmissionHoldService : IBaseService<AdmissionHold>
 {
     Task<int> GetAvailableSeatsAsync(long classId);
+    Task<(int AvailableSeats, int ConfirmedSeats)> GetSeatSummaryAsync(long classId);
     Task<bool> HasActiveApplicationAsync(string studentId);
     Task<AdmissionHold> GetActiveHoldAsync(string studentId);
     Task ExpireAndPromoteAsync(long classId);

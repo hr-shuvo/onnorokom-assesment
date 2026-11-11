@@ -11,6 +11,7 @@ public class AcademicClassDto
     public int Order { get; set; }
     public int TotalSeats { get; set; }
     public int AvailableSeats { get; set; }
+    public int ConfirmedSeats { get; set; }
     public bool IsActive { get; set; }
     public Shift Shift { get; set; }
     public long? AdmissionId { get; set; }

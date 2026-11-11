@@ -41,8 +41,8 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         var dtos = new List<AcademicClassDto>();
         foreach (var item in items)
         {
-            var availableSeats = await _holdService.GetAvailableSeatsAsync(item.Id);
-            dtos.Add(ToDto(item, availableSeats));
+            var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(item.Id);
+            dtos.Add(ToDto(item, availableSeats, confirmedSeats));
         }
 
         return (count, dtos);
@@ -51,8 +51,8 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
     public async Task<AcademicClassDto> GetAsync(long id)
     {
         var entity = await GetByIdAsync(id);
-        var availableSeats = await _holdService.GetAvailableSeatsAsync(id);
-        return ToDto(entity, availableSeats);
+        var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(id);
+        return ToDto(entity, availableSeats, confirmedSeats);
     }
 
     public async Task<AcademicClassDto> SaveAsync(AcademicClassVm model)
@@ -66,8 +66,8 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         entity.Shift = model.Shift;
 
         entity = model.Id.HasValue ? await UpdateAsync(entity) : await CreateAsync(entity);
-        var availableSeats = await _holdService.GetAvailableSeatsAsync(entity.Id);
-        return ToDto(entity, availableSeats);
+        var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(entity.Id);
+        return ToDto(entity, availableSeats, confirmedSeats);
     }
 
     public async Task<AcademicClassDto> ToggleStatusAsync(long id)
@@ -75,17 +75,18 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         var entity = await GetByIdAsync(id);
         entity.IsActive = !entity.IsActive;
         entity = await UpdateAsync(entity);
-        var availableSeats = await _holdService.GetAvailableSeatsAsync(entity.Id);
-        return ToDto(entity, availableSeats);
+        var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(entity.Id);
+        return ToDto(entity, availableSeats, confirmedSeats);
     }
 
-    private static AcademicClassDto ToDto(AcademicClass entity, int availableSeats) => new()
+    private static AcademicClassDto ToDto(AcademicClass entity, int availableSeats, int confirmedSeats) => new()
     {
         Id = entity.Id,
         Name = entity.Name,
         Order = entity.Order,
         TotalSeats = entity.TotalSeats,
         AvailableSeats = availableSeats,
+        ConfirmedSeats = confirmedSeats,
         IsActive = entity.IsActive,
         Shift = entity.Shift,
         CreatedAt = entity.CreatedAt,
