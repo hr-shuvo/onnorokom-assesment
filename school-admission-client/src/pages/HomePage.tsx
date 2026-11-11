@@ -7,6 +7,7 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import AdmissionClosedCard from "@/components/admissions/AdmissionClosedCard";
 import { academicClassService } from "@/services/academic-class-service";
 import { useAdmission } from "@/hooks/use-admission";
+import { getErrorMessage } from "@/lib/http-client";
 import type { AcademicClass } from "@/types/academic-class";
 
 const seatLabel = (c: AcademicClass) => {
@@ -16,9 +17,10 @@ const seatLabel = (c: AcademicClass) => {
 };
 
 const HomePage = () => {
-  const { admission, isLoading: isAdmissionLoading, isOpen, closedMessage } = useAdmission();
+  const { admission, isLoading: isAdmissionLoading, error: admissionError, isOpen, closedMessage } = useAdmission();
   const [classes, setClasses] = useState<AcademicClass[]>([]);
   const [isLoadingClasses, setIsLoadingClasses] = useState(true);
+  const [classesError, setClassesError] = useState<unknown>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -28,15 +30,32 @@ const HomePage = () => {
 
     const load = async () => {
       setIsLoadingClasses(true);
-      const result = await academicClassService.load(1, 100);
-      setClasses(result.items.filter((c) => c.isActive));
-      setIsLoadingClasses(false);
+      setClassesError(null);
+      try {
+        const result = await academicClassService.load(1, 100);
+        setClasses(result.items.filter((c) => c.isActive));
+      } catch (err) {
+        setClassesError(err);
+      } finally {
+        setIsLoadingClasses(false);
+      }
     };
     load();
   }, [isOpen]);
 
   if (isAdmissionLoading) {
-    return <Loading />;
+    return <Loading className="min-h-screen" />;
+  }
+
+  if (admissionError) {
+    return (
+      <div className="min-h-screen bg-muted/40">
+        <SiteHeader />
+        <main className="mx-auto max-w-2xl space-y-6 p-6 py-12">
+          <p className="text-sm text-destructive">{getErrorMessage(admissionError)}</p>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -65,10 +84,14 @@ const HomePage = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 {isLoadingClasses && <p className="text-sm text-muted-foreground">Loading classes...</p>}
-                {!isLoadingClasses && classes.length === 0 && (
+                {!isLoadingClasses && classesError && (
+                  <p className="text-sm text-destructive">{getErrorMessage(classesError)}</p>
+                )}
+                {!isLoadingClasses && !classesError && classes.length === 0 && (
                   <p className="text-sm text-muted-foreground">No classes are open for admission right now.</p>
                 )}
                 {!isLoadingClasses &&
+                  !classesError &&
                   classes.map((c) => (
                     <div key={c.id} className="flex items-center justify-between rounded-md border p-3">
                       <p className="font-medium">

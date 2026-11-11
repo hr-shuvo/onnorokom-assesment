@@ -22,12 +22,19 @@ const closedMessage = (admission: AdmissionSettings | null): string => {
 export const useAdmission = () => {
   const [admission, setAdmission] = useState<AdmissionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
-      setAdmission(await admissionService.get());
-      setIsLoading(false);
+      setError(null);
+      try {
+        setAdmission(await admissionService.get());
+      } catch (err) {
+        setError(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     load();
   }, []);
@@ -35,6 +42,7 @@ export const useAdmission = () => {
   return {
     admission,
     isLoading,
+    error,
     isOpen: isAdmissionOpen(admission),
     closedMessage: closedMessage(admission),
   };

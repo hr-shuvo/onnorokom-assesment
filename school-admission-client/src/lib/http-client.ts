@@ -1,9 +1,11 @@
 import axios from "axios";
+import { toast } from "sonner";
 import { useStudentStore } from "../stores/student-store";
 
 export const httpClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080",
   headers: { "Content-Type": "application/json" },
+  timeout: 20_000,
 });
 
 httpClient.interceptors.request.use((config) => {
@@ -13,6 +15,18 @@ httpClient.interceptors.request.use((config) => {
   }
   return config;
 });
+
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (axios.isAxiosError(error) && !error.response) {
+      toast.error("Cannot reach the server. Please check your connection and try again.", {
+        id: "network-error",
+      });
+    }
+    return Promise.reject(error);
+  }
+);
 
 type ProblemDetails = {
   title?: string;
