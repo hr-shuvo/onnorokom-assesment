@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
 using Domain.Services.Interfaces;
+using Domain.Settings;
 using Framework.Exceptions;
 using Framework.Repositories;
 using Framework.Services;
@@ -12,17 +13,17 @@ namespace Domain.Services;
 public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldService
 {
     private readonly IBaseRepository<AcademicClass> _classRepository;
-    private readonly IBaseRepository<Admission> _admissionRepository;
+    private readonly ISettingsService<AdmissionSettings> _admissionSettings;
     private readonly DbContext _dbContext;
 
     public AdmissionHoldService(
         IBaseRepository<AdmissionHold> repository,
         IBaseRepository<AcademicClass> classRepository,
-        IBaseRepository<Admission> admissionRepository,
+        ISettingsService<AdmissionSettings> admissionSettings,
         DbContext dbContext) : base(repository)
     {
         _classRepository = classRepository;
-        _admissionRepository = admissionRepository;
+        _admissionSettings = admissionSettings;
         _dbContext = dbContext;
     }
 
@@ -69,7 +70,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         var academicClass = await _classRepository.Get(classId)
             ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
 
-        var admission = await GetPublishedAdmissionAsync();
+        var admission = await _admissionSettings.GetAsync();
 
         if (!academicClass.IsActive || !IsAdmissionOpen(admission, now))
         {
@@ -227,12 +228,12 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
     
 
-    private async Task<(AcademicClass Class, Admission Admission)> GetOpenClassOrThrowAsync(long classId)
+    private async Task<(AcademicClass Class, AdmissionSettings Admission)> GetOpenClassOrThrowAsync(long classId)
     {
         var academicClass = await _classRepository.Get(classId)
             ?? throw new NotFoundException($"AcademicClass with id {classId} was not found.");
 
-        var admission = await GetPublishedAdmissionAsync();
+        var admission = await _admissionSettings.GetAsync();
 
         if (!academicClass.IsActive || !IsAdmissionOpen(admission, DateTime.UtcNow))
         {
@@ -241,9 +242,6 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
 
         return (academicClass, admission);
     }
-
-    private Task<Admission> GetPublishedAdmissionAsync() =>
-        _admissionRepository.Get(x => x.Status == AdmissionStatus.Published);
 
     private async Task InsertHoldAsync(AdmissionHold hold)
     {
@@ -261,8 +259,8 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         _dbContext.Database.ExecuteSqlInterpolatedAsync(
             $"SELECT 1 FROM \"AcademicClass\" WHERE \"Id\" = {classId} FOR UPDATE");
 
-    private static bool IsAdmissionOpen(Admission admission, DateTime now) =>
-        admission is { Status: AdmissionStatus.Published } && admission.OpensAt <= now && admission.ClosesAt > now;
+    private static bool IsAdmissionOpen(AdmissionSettings admission, DateTime now) =>
+        admission is { IsPublished: true } && admission.OpensAt <= now && admission.ClosesAt > now;
 
     private static bool IsUniqueViolation(DbUpdateException ex) =>
         ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };

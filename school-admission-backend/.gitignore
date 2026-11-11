@@ -371,3 +371,5 @@ src/Api/appsettings.Production.json
 
 src/Api/path/to/serviceAccountKey.json
 src/Api/path/config/*
+
+src/Api/config/*Settings.json
