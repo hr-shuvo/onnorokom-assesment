@@ -13,8 +13,16 @@ import { DataTable } from "../../components/ui/data-table";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 const DEFAULT_PAGE_SIZE = 20;
+const ALL_SHIFTS = "all";
 
 const ClassesPage = () => {
   const navigate = useNavigate();
@@ -23,6 +31,7 @@ const ClassesPage = () => {
   const page = Number(searchParams.get("page")) || 1;
   const pageSize = Number(searchParams.get("pageSize")) || DEFAULT_PAGE_SIZE;
   const search = searchParams.get("q") || "";
+  const shift = searchParams.get("shift") || "";
 
   const [deletingClass, setDeletingClass] = useState<AcademicClass | null>(null);
   const [searchInput, setSearchInput] = useState(search);
@@ -37,7 +46,7 @@ const ClassesPage = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await academicClassService.load(page, pageSize, search || undefined);
+      const result = await academicClassService.load(page, pageSize, search || undefined, shift || undefined);
       setData(result);
     } catch (err) {
       setError(err);
@@ -49,21 +58,28 @@ const ClassesPage = () => {
   useEffect(() => {
     if (debouncedSearch === search) return;
     setSearchParams(
-      { page: "1", pageSize: String(pageSize), q: debouncedSearch },
+      { page: "1", pageSize: String(pageSize), q: debouncedSearch, shift },
       { replace: true }
     );
-  }, [debouncedSearch, search, pageSize, setSearchParams]);
+  }, [debouncedSearch, search, pageSize, shift, setSearchParams]);
 
   useEffect(() => {
     refetch();
-  }, [page, pageSize, search]);
+  }, [page, pageSize, search, shift]);
 
   const goToPage = (newPage: number) => {
-    setSearchParams({ page: String(newPage), pageSize: String(pageSize), q: search }, { replace: true });
+    setSearchParams({ page: String(newPage), pageSize: String(pageSize), q: search, shift }, { replace: true });
   };
 
   const setPageSize = (newPageSize: number) => {
-    setSearchParams({ page: "1", pageSize: String(newPageSize), q: search }, { replace: true });
+    setSearchParams({ page: "1", pageSize: String(newPageSize), q: search, shift }, { replace: true });
+  };
+
+  const handleShiftChange = (newShift: string | null) => {
+    setSearchParams(
+      { page: "1", pageSize: String(pageSize), q: search, shift: !newShift || newShift === ALL_SHIFTS ? "" : newShift },
+      { replace: true }
+    );
   };
 
   const handleToggleStatus = async (id: number) => {
@@ -104,6 +120,8 @@ const ClassesPage = () => {
     onDelete: setDeletingClass,
     onViewApplicants: (academicClass) => navigate(`/admin/classes/${academicClass.id}/applicants`),
     shiftLabels,
+    page,
+    pageSize,
   });
 
   return (
@@ -117,12 +135,28 @@ const ClassesPage = () => {
           </Button>
         </div>
 
-        <Input
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search classes..."
-          className="max-w-xs"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search classes..."
+            className="max-w-xs"
+          />
+
+          <Select value={shift || ALL_SHIFTS} onValueChange={handleShiftChange}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All shifts" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL_SHIFTS}>All shifts</SelectItem>
+              {shifts.map((option) => (
+                <SelectItem key={option.value} value={option.name}>
+                  {option.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
 

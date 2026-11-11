@@ -11,6 +11,8 @@ interface ColumnsOptions {
   onDelete: (academicClass: AcademicClass) => void;
   onViewApplicants: (academicClass: AcademicClass) => void;
   shiftLabels: Record<string, string>;
+  page: number;
+  pageSize: number;
 }
 
 export function getAcademicClassColumns({
@@ -20,11 +22,14 @@ export function getAcademicClassColumns({
   onDelete,
   onViewApplicants,
   shiftLabels,
+  page,
+  pageSize,
 }: ColumnsOptions): ColumnDef<AcademicClass>[] {
   return [
     {
-      accessorKey: "order",
-      header: "Order",
+      id: "sl",
+      header: "SL",
+      cell: ({ row }) => (page - 1) * pageSize + row.index + 1,
     },
     {
       accessorKey: "name",
@@ -59,6 +64,10 @@ export function getAcademicClassColumns({
           </button>
         );
       },
+    },
+    {
+      accessorKey: "order",
+      header: "Order",
     },
     {
       id: "actions",
