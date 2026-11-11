@@ -15,5 +15,7 @@ public class Admission : BaseEntity
 
     public int HoldMinutes { get; set; } = 10;
 
+    public int WaitlistHoldMinutes { get; set; } = 30;
+
     public AdmissionStatus Status { get; set; } = AdmissionStatus.Draft;
 }

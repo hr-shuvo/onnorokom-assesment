@@ -15,6 +15,7 @@ public class AdmissionConfiguration : IEntityTypeConfiguration<Admission>
         builder.Property(x => x.ClosesAt).IsRequired();
 
         builder.Property(x => x.HoldMinutes).IsRequired();
+        builder.Property(x => x.WaitlistHoldMinutes).IsRequired().HasDefaultValue(30);
         builder.Property(x => x.Status).IsRequired();
     }
 }

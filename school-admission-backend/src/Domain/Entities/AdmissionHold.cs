@@ -11,7 +11,7 @@ public class AdmissionHold: BaseEntity
 
     public string GuardianPhone { get; set; }
 
-    public int ClassId { get; set; }
+    public long ClassId { get; set; }
     
     public HoldStatus Status { get; set; }
     

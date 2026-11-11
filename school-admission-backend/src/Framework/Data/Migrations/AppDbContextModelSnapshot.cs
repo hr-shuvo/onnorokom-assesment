@@ -101,6 +101,11 @@ namespace Framework.Data.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("WaitlistHoldMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30);
+
                     b.HasKey("Id");
 
                     b.ToTable("Admission");
@@ -114,8 +119,8 @@ namespace Framework.Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("ClassId")
-                        .HasColumnType("integer");
+                    b.Property<long>("ClassId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ConfirmedAt")
                         .HasColumnType("timestamp with time zone");
@@ -152,6 +157,9 @@ namespace Framework.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("StudentId")
+                        .IsUnique();
 
                     b.ToTable("AdmissionHold");
                 });

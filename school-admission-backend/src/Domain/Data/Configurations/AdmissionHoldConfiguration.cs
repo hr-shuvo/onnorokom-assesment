@@ -15,5 +15,7 @@ public class AdmissionHoldConfiguration : IEntityTypeConfiguration<AdmissionHold
         builder.Property(x => x.ClassId).IsRequired();
         builder.Property(x => x.Status).IsRequired();
         builder.Property(x => x.ExpiresAt).IsRequired();
+
+        builder.HasIndex(x => x.StudentId).IsUnique();
     }
 }

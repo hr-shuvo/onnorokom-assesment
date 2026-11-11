@@ -11,6 +11,7 @@ public static class DomainServiceCollectionExtensions
     {
         services.AddScoped<IAcademicClassService, AcademicClassService>();
         services.AddScoped<IAdmissionService, AdmissionService>();
+        services.AddScoped<IAdmissionHoldService, AdmissionHoldService>();
 
         services.AddSingleton(new EntityAssemblyOptions(typeof(DomainServiceCollectionExtensions).Assembly));
 
