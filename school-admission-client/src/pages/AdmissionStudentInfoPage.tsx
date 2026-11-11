@@ -6,12 +6,13 @@ import AdmissionClosedCard from "@/components/admissions/AdmissionClosedCard";
 import StudentInfoForm from "@/components/admissions/StudentInfoForm";
 import type { ApplyHoldFormValues } from "@/components/admissions/apply-hold-schema";
 import { Loading } from "@/components/ui/loading";
+import { getErrorMessage } from "@/lib/http-client";
 import { useAdmission } from "@/hooks/use-admission";
 import { useStudentStore } from "@/stores/student-store";
 
 const AdmissionStudentInfoPage = () => {
   const navigate = useNavigate();
-  const { admission, isLoading, isOpen, closedMessage } = useAdmission();
+  const { admission, isLoading, error, isOpen, closedMessage } = useAdmission();
   const { applicant, setApplicant } = useStudentStore();
 
   useEffect(() => {
@@ -29,7 +30,7 @@ const AdmissionStudentInfoPage = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading className="min-h-screen" />;
   }
 
   return (
@@ -37,12 +38,18 @@ const AdmissionStudentInfoPage = () => {
       <SiteHeader />
 
       <main className="mx-auto max-w-3xl space-y-6 p-6 py-12">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">{admission?.title ?? "Admission"}</h1>
-          {admission?.description && <p className="text-muted-foreground">{admission.description}</p>}
-        </div>
+        {error ? (
+          <p className="text-sm text-destructive">{getErrorMessage(error)}</p>
+        ) : (
+          <>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold">{admission?.title ?? "Admission"}</h1>
+              {admission?.description && <p className="text-muted-foreground">{admission.description}</p>}
+            </div>
 
-        {isOpen ? <StudentInfoForm onSubmit={onSubmit} /> : <AdmissionClosedCard message={closedMessage} />}
+            {isOpen ? <StudentInfoForm onSubmit={onSubmit} /> : <AdmissionClosedCard message={closedMessage} />}
+          </>
+        )}
       </main>
     </div>
   );

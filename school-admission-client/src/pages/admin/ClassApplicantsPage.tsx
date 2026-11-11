@@ -10,6 +10,7 @@ import type { AdmissionHold, HoldStatus } from "../../types/hold";
 import { getAdmissionHoldColumns } from "../../components/holds/columns";
 import { DataTable } from "../../components/ui/data-table";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Loading } from "../../components/ui/loading";
 import {
   Select,
@@ -34,14 +35,20 @@ const ClassApplicantsPage = () => {
   const status = (searchParams.get("status") as HoldStatus | null) ?? undefined;
 
   const [academicClass, setAcademicClass] = useState<AcademicClass | null>(null);
+  const [classError, setClassError] = useState<unknown>(null);
   const [data, setData] = useState<PagedResult<AdmissionHold> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     const loadClass = async () => {
-      const result = await academicClassService.get(Number(classId));
-      setAcademicClass(result);
+      setClassError(null);
+      try {
+        const result = await academicClassService.get(Number(classId));
+        setAcademicClass(result);
+      } catch (err) {
+        setClassError(err);
+      }
     };
     loadClass();
   }, [classId]);
@@ -93,52 +100,54 @@ const ClassApplicantsPage = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
+      <Card className="gap-4 px-4">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">
             Applicants {academicClass ? `— ${academicClass.name} (${academicClass.shift})` : ""}
           </h1>
+          <Button variant="outline" onClick={() => navigate("/admin/classes")}>
+            <ArrowLeftIcon />
+            Back to Classes
+          </Button>
         </div>
-        <Button variant="outline" onClick={() => navigate("/admin/classes")}>
-          <ArrowLeftIcon />
-          Back to Classes
-        </Button>
-      </div>
 
-      {!academicClass ? (
-        <Loading />
-      ) : (
-        <>
-          <Select value={status ?? "All"} onValueChange={setStatus}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">All statuses</SelectItem>
-              {STATUS_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {classError ? (
+          <p className="text-sm text-destructive">{getErrorMessage(classError)}</p>
+        ) : !academicClass ? (
+          <Loading />
+        ) : (
+          <>
+            <Select value={status ?? "All"} onValueChange={setStatus}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All statuses</SelectItem>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-          {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
+            {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
 
-          <DataTable
-            columns={columns}
-            data={data?.items ?? []}
-            isLoading={isLoading}
-            emptyMessage="No applicants yet."
-            page={page}
-            pageCount={data?.totalPage ?? 0}
-            pageSize={pageSize}
-            totalCount={data?.totalCount ?? 0}
-            onPageChange={goToPage}
-            onPageSizeChange={setPageSize}
-          />
-        </>
-      )}
+            <DataTable
+              columns={columns}
+              data={data?.items ?? []}
+              isLoading={isLoading}
+              emptyMessage="No applicants yet."
+              page={page}
+              pageCount={data?.totalPage ?? 0}
+              pageSize={pageSize}
+              totalCount={data?.totalCount ?? 0}
+              onPageChange={goToPage}
+              onPageSizeChange={setPageSize}
+            />
+          </>
+        )}
+      </Card>
     </div>
   );
 };

@@ -24,6 +24,7 @@ const AdmissionApplicationPage = () => {
   const [classes, setClasses] = useState<AcademicClass[]>([]);
   const [hold, setHold] = useState<AdmissionHold | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [submittingClassId, setSubmittingClassId] = useState<number | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -40,13 +41,19 @@ const AdmissionApplicationPage = () => {
 
     const load = async () => {
       setIsLoading(true);
-      const [classesResult, holdResult] = await Promise.all([
-        academicClassService.load(1, 100),
-        holdService.getMine(),
-      ]);
-      setClasses(classesResult.items.filter((c) => c.isActive));
-      setHold(holdResult);
-      setIsLoading(false);
+      setLoadError(null);
+      try {
+        const [classesResult, holdResult] = await Promise.all([
+          academicClassService.load(1, 100),
+          holdService.getMine(),
+        ]);
+        setClasses(classesResult.items.filter((c) => c.isActive));
+        setHold(holdResult);
+      } catch (err) {
+        setLoadError(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     load();
   }, [applicant]);
@@ -114,7 +121,18 @@ const AdmissionApplicationPage = () => {
   };
 
   if (!applicant || isAdmissionLoading || isLoading) {
-    return <Loading />;
+    return <Loading className="min-h-screen" />;
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-muted/40">
+        <SiteHeader />
+        <main className="mx-auto max-w-3xl space-y-6 p-6 py-12">
+          <p className="text-sm text-destructive">{getErrorMessage(loadError)}</p>
+        </main>
+      </div>
+    );
   }
 
   return (

@@ -18,6 +18,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 const AdmissionSettingsPage = () => {
   const [admission, setAdmission] = useState<AdmissionSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isTogglingPublish, setIsTogglingPublish] = useState(false);
 
@@ -29,9 +30,15 @@ const AdmissionSettingsPage = () => {
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
-      const result = await admissionService.get();
-      setAdmission(result);
-      setIsLoading(false);
+      setLoadError(null);
+      try {
+        const result = await admissionService.get();
+        setAdmission(result);
+      } catch (err) {
+        setLoadError(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     load();
   }, []);
@@ -50,7 +57,11 @@ const AdmissionSettingsPage = () => {
   }, [admission, form]);
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading className="min-h-screen" />;
+  }
+
+  if (loadError) {
+    return <p className="text-sm text-destructive">{getErrorMessage(loadError)}</p>;
   }
 
   const onSubmit = async (values: AdmissionFormValues) => {

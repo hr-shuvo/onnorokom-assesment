@@ -75,7 +75,12 @@ export function getAcademicClassColumns({
               <PencilIcon />
               <span className="sr-only">Edit</span>
             </Button>
-            <Button variant="ghost" size="icon-sm" onClick={() => onDelete(academicClass)}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="hover:bg-destructive/10 hover:text-destructive"
+              onClick={() => onDelete(academicClass)}
+            >
               <Trash2Icon />
               <span className="sr-only">Delete</span>
             </Button>

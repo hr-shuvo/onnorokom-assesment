@@ -28,6 +28,7 @@ const ClassEditPage = () => {
 
   const [academicClass, setAcademicClass] = useState<AcademicClass | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<unknown>(null);
   const [isSaving, setIsSaving] = useState(false);
   const { shifts, isLoading: isLoadingShifts } = useShifts();
 
@@ -38,9 +39,15 @@ const ClassEditPage = () => {
   useEffect(() => {
     const loadClass = async () => {
       setIsLoading(true);
-      const result = await academicClassService.get(Number(id));
-      setAcademicClass(result);
-      setIsLoading(false);
+      setLoadError(null);
+      try {
+        const result = await academicClassService.get(Number(id));
+        setAcademicClass(result);
+      } catch (err) {
+        setLoadError(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadClass();
   }, [id]);
@@ -52,7 +59,11 @@ const ClassEditPage = () => {
   }, [academicClass, form]);
 
   if (isLoading) {
-    return <Loading />;
+    return <Loading className="min-h-screen" />;
+  }
+
+  if (loadError) {
+    return <p className="text-sm text-destructive">{getErrorMessage(loadError)}</p>;
   }
 
   const onSubmit = async (values: AcademicClassFormValues) => {

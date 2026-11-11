@@ -11,6 +11,7 @@ import { getAcademicClassColumns } from "../../components/academic-classes/colum
 import { ConfirmDeleteDialog } from "../../components/ui/confirm-delete-dialog";
 import { DataTable } from "../../components/ui/data-table";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -107,35 +108,37 @@ const ClassesPage = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Classes</h1>
-        <Button onClick={() => navigate("/admin/classes/new")}>
-          <PlusIcon />
-          New Class
-        </Button>
-      </div>
+      <Card className="gap-4 px-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">Classes</h1>
+          <Button onClick={() => navigate("/admin/classes/new")}>
+            <PlusIcon />
+            New Class
+          </Button>
+        </div>
 
-      <Input
-        value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
-        placeholder="Search classes..."
-        className="max-w-xs"
-      />
+        <Input
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search classes..."
+          className="max-w-xs"
+        />
 
-      {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
+        {error !== null && <p className="text-sm text-destructive">{getErrorMessage(error)}</p>}
 
-      <DataTable
-        columns={columns}
-        data={data?.items ?? []}
-        isLoading={isLoading}
-        emptyMessage="No classes yet."
-        page={page}
-        pageCount={data?.totalPage ?? 0}
-        pageSize={pageSize}
-        totalCount={data?.totalCount ?? 0}
-        onPageChange={goToPage}
-        onPageSizeChange={setPageSize}
-      />
+        <DataTable
+          columns={columns}
+          data={data?.items ?? []}
+          isLoading={isLoading}
+          emptyMessage="No classes yet."
+          page={page}
+          pageCount={data?.totalPage ?? 0}
+          pageSize={pageSize}
+          totalCount={data?.totalCount ?? 0}
+          onPageChange={goToPage}
+          onPageSizeChange={setPageSize}
+        />
+      </Card>
 
       <ConfirmDeleteDialog
         open={deletingClass !== null}
