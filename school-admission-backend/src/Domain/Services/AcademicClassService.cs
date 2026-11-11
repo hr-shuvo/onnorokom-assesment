@@ -1,8 +1,10 @@
 using Domain.Dtos;
 using Domain.Entities;
 using Domain.Services.Interfaces;
+using Framework.Exceptions;
 using Framework.Repositories;
 using Framework.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domain.Services;
 
@@ -57,17 +59,38 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
 
     public async Task<AcademicClassDto> SaveAsync(AcademicClassVm model)
     {
-        var entity = model.Id.HasValue ? await GetByIdAsync(model.Id.Value) : new AcademicClass();
+        if (model.Id is not null and not 0)
+        {
+            var entity = await GetByIdAsync(model.Id.Value);
 
-        entity.Name = model.Name;
-        entity.Order = model.Order;
-        entity.TotalSeats = model.TotalSeats;
-        entity.IsActive = model.IsActive;
-        entity.Shift = model.Shift;
+            if (entity.Name != model.Name || entity.Shift != model.Shift)
+            {
+                var nameTaken = await Query().AnyAsync(x => x.Name == model.Name && x.Shift == model.Shift);
+                if (nameTaken)
+                {
+                    throw new ConflictException("A class with this name already exists for this shift.");
+                }
+            }
 
-        entity = model.Id.HasValue ? await UpdateAsync(entity) : await CreateAsync(entity);
-        var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(entity.Id);
-        return ToDto(entity, availableSeats, confirmedSeats);
+            ToEntity(entity, model);
+            entity = await UpdateAsync(entity);
+
+            var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(entity.Id);
+            return ToDto(entity, availableSeats, confirmedSeats);
+        }
+
+        var isNameTaken = await Query().AnyAsync(x => x.Name == model.Name && x.Shift == model.Shift);
+        if (isNameTaken)
+        {
+            throw new ConflictException("A class with this name already exists for this shift.");
+        }
+
+        var newEntity = new AcademicClass();
+        ToEntity(newEntity, model);
+        newEntity = await CreateAsync(newEntity);
+
+        var (newAvailableSeats, newConfirmedSeats) = await _holdService.GetSeatSummaryAsync(newEntity.Id);
+        return ToDto(newEntity, newAvailableSeats, newConfirmedSeats);
     }
 
     public async Task<AcademicClassDto> ToggleStatusAsync(long id)
@@ -77,6 +100,17 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         entity = await UpdateAsync(entity);
         var (availableSeats, confirmedSeats) = await _holdService.GetSeatSummaryAsync(entity.Id);
         return ToDto(entity, availableSeats, confirmedSeats);
+    }
+
+    #region Private Methods
+
+    private static void ToEntity(AcademicClass entity, AcademicClassVm model)
+    {
+        entity.Name = model.Name;
+        entity.Order = model.Order;
+        entity.TotalSeats = model.TotalSeats;
+        entity.IsActive = model.IsActive;
+        entity.Shift = model.Shift;
     }
 
     private static AcademicClassDto ToDto(AcademicClass entity, int availableSeats, int confirmedSeats) => new()
@@ -92,4 +126,6 @@ public class AcademicClassService : BaseService<AcademicClass>, IAcademicClassSe
         CreatedAt = entity.CreatedAt,
         UpdatedAt = entity.UpdatedAt
     };
+
+    #endregion
 }

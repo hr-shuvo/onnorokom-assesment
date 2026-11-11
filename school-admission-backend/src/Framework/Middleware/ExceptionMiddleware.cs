@@ -44,7 +44,6 @@ public class ExceptionMiddleware
         {
             statusCode = appEx.StatusCode;
             message = appEx.Message;
-            details = appEx.Details;
         }
         else
         {

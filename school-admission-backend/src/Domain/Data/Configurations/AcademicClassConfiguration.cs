@@ -10,7 +10,6 @@ public class AcademicClassConfiguration : IEntityTypeConfiguration<AcademicClass
     public void Configure(EntityTypeBuilder<AcademicClass> builder)
     {
         builder.Property(x => x.Name).IsRequired().HasMaxLength(100);
-        builder.HasIndex(x => x.Name).IsUnique();
 
         builder.Property(x => x.Order).IsRequired();
         builder.Property(x => x.TotalSeats).IsRequired();

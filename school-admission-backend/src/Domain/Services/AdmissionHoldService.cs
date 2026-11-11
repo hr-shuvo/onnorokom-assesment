@@ -190,7 +190,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             ExpiresAt = DateTime.UtcNow.AddMinutes(admission.HoldMinutes)
         };
 
-        await InsertHoldAsync(hold);
+        await CreateAsync(hold);
 
         return hold;
     }
@@ -234,7 +234,7 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
             ExpiresAt = null
         };
 
-        await InsertHoldAsync(hold);
+        await CreateAsync(hold);
 
         return hold;
     }
@@ -367,23 +367,8 @@ public class AdmissionHoldService : BaseService<AdmissionHold>, IAdmissionHoldSe
         return (academicClass, admission);
     }
 
-    private async Task InsertHoldAsync(AdmissionHold hold)
-    {
-        try
-        {
-            await CreateAsync(hold);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-        {
-            throw new ConflictException("This student already has an active application.");
-        }
-    }
-
     private static bool IsAdmissionOpen(AdmissionSettings admission, DateTime now) =>
         admission is { IsPublished: true } && admission.OpensAt <= now && admission.ClosesAt > now;
-
-    private static bool IsUniqueViolation(DbUpdateException ex) =>
-        ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 
     #endregion
 }
